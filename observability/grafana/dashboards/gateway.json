@@ -1,0 +1,3354 @@
+{
+  "uid": "cmp-security-gateway",
+  "title": "CMP Security Gateway",
+  "description": "Live metrics (Prometheus) and per-decision details from the audit trail (PostgreSQL).",
+  "schemaVersion": 39,
+  "version": 4,
+  "refresh": "10s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "tags": [
+    "cmp",
+    "security"
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "channel",
+        "label": "Channel",
+        "type": "custom",
+        "query": "web,sms,whatsapp,apple,facebook,voice,other",
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "web",
+            "value": "web",
+            "selected": false
+          },
+          {
+            "text": "sms",
+            "value": "sms",
+            "selected": false
+          },
+          {
+            "text": "whatsapp",
+            "value": "whatsapp",
+            "selected": false
+          },
+          {
+            "text": "apple",
+            "value": "apple",
+            "selected": false
+          },
+          {
+            "text": "facebook",
+            "value": "facebook",
+            "selected": false
+          },
+          {
+            "text": "voice",
+            "value": "voice",
+            "selected": false
+          },
+          {
+            "text": "other",
+            "value": "other",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "state",
+        "label": "Session state",
+        "type": "custom",
+        "query": "anonymous,verified",
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "anonymous",
+            "value": "anonymous",
+            "selected": false
+          },
+          {
+            "text": "verified",
+            "value": "verified",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "mode",
+        "label": "Mode",
+        "type": "custom",
+        "query": "inspect,proxy,outbound,proxy-outbound",
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "inspect",
+            "value": "inspect",
+            "selected": false
+          },
+          {
+            "text": "proxy",
+            "value": "proxy",
+            "selected": false
+          },
+          {
+            "text": "outbound",
+            "value": "outbound",
+            "selected": false
+          },
+          {
+            "text": "proxy-outbound",
+            "value": "proxy-outbound",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "action",
+        "label": "Action",
+        "type": "custom",
+        "query": "allow,restrict,throttle,block",
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "allow",
+            "value": "allow",
+            "selected": false
+          },
+          {
+            "text": "restrict",
+            "value": "restrict",
+            "selected": false
+          },
+          {
+            "text": "throttle",
+            "value": "throttle",
+            "selected": false
+          },
+          {
+            "text": "block",
+            "value": "block",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "cmp_action",
+        "label": "CMP action",
+        "type": "custom",
+        "query": "deliver,forward_without_tools,retry_later,refuse,handoff_to_agent,end_contact,send_fallback",
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": [
+          {
+            "text": "All",
+            "value": "$__all",
+            "selected": true
+          },
+          {
+            "text": "deliver",
+            "value": "deliver",
+            "selected": false
+          },
+          {
+            "text": "forward_without_tools",
+            "value": "forward_without_tools",
+            "selected": false
+          },
+          {
+            "text": "retry_later",
+            "value": "retry_later",
+            "selected": false
+          },
+          {
+            "text": "refuse",
+            "value": "refuse",
+            "selected": false
+          },
+          {
+            "text": "handoff_to_agent",
+            "value": "handoff_to_agent",
+            "selected": false
+          },
+          {
+            "text": "end_contact",
+            "value": "end_contact",
+            "selected": false
+          },
+          {
+            "text": "send_fallback",
+            "value": "send_fallback",
+            "selected": false
+          }
+        ]
+      },
+      {
+        "name": "reason",
+        "label": "Reason",
+        "type": "query",
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "security-db"
+        },
+        "query": "SELECT DISTINCT unnest(reasons) FROM security_events WHERE ts > now() - interval '7 days' ORDER BY 1",
+        "definition": "SELECT DISTINCT unnest(reasons) FROM security_events WHERE ts > now() - interval '7 days' ORDER BY 1",
+        "refresh": 2,
+        "includeAll": true,
+        "allValue": "'all'",
+        "multi": false,
+        "sort": 1,
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
+      },
+      {
+        "name": "session",
+        "label": "Session id",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      },
+      {
+        "name": "user",
+        "label": "Customer (cu_\u2026) / IP",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      },
+      {
+        "name": "search",
+        "label": "Message contains",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      },
+      {
+        "name": "event_id",
+        "label": "Event id",
+        "type": "textbox",
+        "query": "",
+        "current": {
+          "text": "",
+          "value": ""
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Live traffic (Prometheus, all channels)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Decisions / s",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum(rate(gateway_decisions_total[1m]))) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Blocked / s",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum(rate(gateway_decisions_total{action=\"block\"}[1m]))) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 6,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Active bans",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum(gateway_active_bans)) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "False-positive reports (24 h)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum(increase(gateway_event_labels_total{label=\"false_positive\"}[24h]))) or vector(0)"
+        }
+      ],
+      "gridPos": {
+        "x": 18,
+        "y": 1,
+        "w": 6,
+        "h": 4
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Decisions by action",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "stacking": {
+              "mode": "normal"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (action) (rate(gateway_decisions_total[1m]))",
+          "legendFormat": "{{action}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Top reasons (blocked / restricted / throttled)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "topk(10, sum by (reason) (rate(gateway_decision_reasons_total[5m])))",
+          "legendFormat": "{{reason}}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Pipeline latency (inspect)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(gateway_pipeline_seconds_bucket{mode=\"inspect\"}[5m])))",
+          "legendFormat": "p50"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(gateway_pipeline_seconds_bucket{mode=\"inspect\"}[5m])))",
+          "legendFormat": "p95"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(gateway_pipeline_seconds_bucket{mode=\"inspect\"}[5m])))",
+          "legendFormat": "p99"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Check latency p95",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, check) (rate(gateway_check_seconds_bucket[5m])))",
+          "legendFormat": "{{check}}"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Degraded dependencies (check skipped / fell back)",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (component) (rate(gateway_degraded_total[5m]))",
+          "legendFormat": "{{component}}"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Monitor-mode policies: would have enforced",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (action) (rate(gateway_monitor_only_total[5m]))",
+          "legendFormat": "{{action}}"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Audit trail",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "stacking": {
+              "mode": "none"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (outcome) (rate(gateway_audit_events_total[5m]))",
+          "legendFormat": "published: {{outcome}}"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (outcome) (rate(gateway_audit_writes_total[5m]))",
+          "legendFormat": "worker: {{outcome}}"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "gateway_audit_pending",
+          "legendFormat": "pending"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 21,
+        "w": 8,
+        "h": 7
+      }
+    },
+    {
+      "id": 13,
+      "type": "row",
+      "title": "Selection summary (audit trail \u2014 follows the filters above)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Decisions",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT count(*) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Flagged %",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT round(100.0 * count(*) FILTER (WHERE action <> 'allow') / NULLIF(count(*), 0), 1) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 4,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "Blocked",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT count(*) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND action = 'block'",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Distinct customers",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT count(DISTINCT user_id) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "Sessions (chats)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT count(DISTINCT session_id) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Median latency",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY latency_ms) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 20,
+        "y": 29,
+        "w": 4,
+        "h": 4
+      }
+    },
+    {
+      "id": 20,
+      "type": "row",
+      "title": "Message explorer",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 21,
+      "type": "table",
+      "title": "Recent decisions \u2014 message, decision and why",
+      "description": "Every decision in the time range that matches the filters. The message is the stored redacted excerpt (sensitive values replaced). Click an id to see every check of that event below.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "risk"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.66
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.969
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ml_score"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.66
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.969
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "time"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 150
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", channel, mode, endpoint, message, action, cmp_action, CASE WHEN monitor_only THEN 'monitor (would block/restrict)' ELSE '' END AS policy, reasons, decided_by, round(risk::numeric, 3) AS risk, round(ml_score::numeric, 3) AS ml_score, rules_fired, bot_tier, sensitive_found, redacted, round(conv_accumulated::numeric, 2) AS conv_risk, round(latency_ms::numeric, 1) AS ms, session_id, session_state, user_id, ip, label, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') ORDER BY ts DESC LIMIT 300",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 34,
+        "w": 24,
+        "h": 13
+      }
+    },
+    {
+      "id": 22,
+      "type": "table",
+      "title": "Why it was flagged \u2014 evidence per decision",
+      "description": "Only blocked / restricted / throttled decisions, with the evidence each check reported.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "evidence"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 520
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", message, action, reasons, decided_by, concat_ws(' | ', CASE WHEN rules_fired IS NOT NULL THEN 'rules: ' || rules_fired END, CASE WHEN ml_score IS NOT NULL THEN 'ml ' || round(ml_score::numeric, 3) || ' (restrict \u2265 ' || round(ml_restrict_at::numeric, 3) || ', block \u2265 ' || round(ml_block_at::numeric, 3) || '; wording ' || round(ml_ngram::numeric, 2) || ', meaning ' || round(ml_embedding::numeric, 2) || ', looks like ' || coalesce(ml_nearest_family, '-') || ')' END, CASE WHEN ml_note IS NOT NULL THEN 'ml: ' || ml_note END, CASE WHEN bot_signals IS NOT NULL THEN 'bot ' || bot_tier || ': ' || bot_signals END, CASE WHEN rate_limited_by IS NOT NULL THEN 'rate limit hit: ' || rate_limited_by END, CASE WHEN reputation >= 60 THEN 'reputation ' || round(reputation::numeric) END, CASE WHEN conv_signals IS NOT NULL THEN 'conversation: ' || conv_signals || ' (risk ' || round(conv_accumulated::numeric, 2) || ')' END, CASE WHEN out_of_scope IS NOT NULL THEN 'not this user''s data: ' || out_of_scope END, CASE WHEN decided_by = 'canary' THEN 'canary token in reply' END ) AS evidence, cmp_action, session_id, user_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND action <> 'allow' ORDER BY ts DESC LIMIT 200",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 47,
+        "w": 24,
+        "h": 11
+      }
+    },
+    {
+      "id": 23,
+      "type": "row",
+      "title": "CMP sessions \u2014 what CMP was told to do",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 58,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 24,
+      "type": "barchart",
+      "title": "CMP actions",
+      "description": "deliver \u00b7 forward_without_tools \u00b7 retry_later \u00b7 refuse \u00b7 handoff_to_agent \u00b7 end_contact (customer messages); deliver \u00b7 send_fallback (AI replies).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(cmp_action, '-') AS cmp_action, count(*) AS decisions FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 59,
+        "w": 8,
+        "h": 9
+      }
+    },
+    {
+      "id": 25,
+      "type": "barchart",
+      "title": "By channel and session state",
+      "description": "Verified = CMP reported a successful identity verification for the session.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "normal",
+        "legend": {
+          "showLegend": true
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(channel, '-') || ' / ' || coalesce(session_state, '-') AS \"channel / state\", count(*) FILTER (WHERE action = 'allow') AS allowed, count(*) FILTER (WHERE action <> 'allow') AS flagged FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1 ORDER BY 1",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 59,
+        "w": 8,
+        "h": 9
+      }
+    },
+    {
+      "id": 26,
+      "type": "table",
+      "title": "Sessions",
+      "description": "One row per CMP session (contact). Copy a session id into the 'Session id' filter to follow it.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT session_id, channel, session_state, messages, replies, blocked, restricted, throttled, round(max_risk::numeric, 3) AS max_risk, last_cmp_action, reasons, started, last_seen FROM security_sessions_view WHERE last_seen >= $__timeFrom() AND started <= $__timeTo() AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) ORDER BY last_seen DESC LIMIT 200",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 59,
+        "w": 8,
+        "h": 9
+      }
+    },
+    {
+      "id": 27,
+      "type": "table",
+      "title": "Session timeline (set the 'Session id' filter)",
+      "description": "Every customer message and AI reply of one session, in order, with what CMP was told each time.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 380
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", CASE WHEN mode = 'outbound' THEN 'AI reply' ELSE 'customer' END AS who, message, action, cmp_action, reasons, decided_by, round(risk::numeric, 3) AS risk, round(conv_accumulated::numeric, 2) AS conv_risk, conv_signals, session_state, message_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND ${session:sqlstring} <> '' ORDER BY ts",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 68,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "id": 28,
+      "type": "row",
+      "title": "Tuning \u2014 near misses and possible false positives",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 78,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 29,
+      "type": "table",
+      "title": "Allowed, but close to the line (possible missed attacks)",
+      "description": "Messages the model scored 0.3 or more that were still allowed. Read them: real attacks here mean the restrict threshold could be lower.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ml_score"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.66
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.969
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 360
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", message, round(ml_score::numeric, 3) AS ml_score, round(ml_restrict_at::numeric, 3) AS restrict_at, round(ml_ngram::numeric, 2) AS wording, round(ml_embedding::numeric, 2) AS meaning, ml_nearest_family AS looks_like, user_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND action = 'allow' AND ml_score >= 0.3 ORDER BY ml_score DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 79,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "id": 30,
+      "type": "table",
+      "title": "Flagged by the model only (check for false positives)",
+      "description": "No rule matched; the model alone decided. Normal customer messages here are false positives \u2014 label them with POST /admin/events/{id}/label.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "ml_score"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "transparent",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 0.66
+                    },
+                    {
+                      "color": "red",
+                      "value": 0.969
+                    }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 360
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", message, action, round(ml_score::numeric, 3) AS ml_score, ml_nearest_family AS looks_like, label, user_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND decided_by = 'ml' ORDER BY ts DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 79,
+        "w": 12,
+        "h": 10
+      }
+    },
+    {
+      "id": 31,
+      "type": "barchart",
+      "title": "ML score distribution",
+      "description": "How the model's scores spread. A healthy model puts normal traffic at the left and attacks at the right; a bump in the middle is where tuning matters.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "vertical",
+        "showValue": "auto",
+        "stacking": "normal",
+        "legend": {
+          "showLegend": true
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT to_char(floor(LEAST(ml_score, 0.999) * 10) / 10, 'FM0.0') || '\u2013' || to_char(floor(LEAST(ml_score, 0.999) * 10) / 10 + 0.1, 'FM0.0') AS score, count(*) FILTER (WHERE action = 'allow') AS allowed, count(*) FILTER (WHERE action <> 'allow') AS flagged FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND ml_score IS NOT NULL GROUP BY 1 ORDER BY 1",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 89,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 32,
+      "type": "table",
+      "title": "ML threshold check",
+      "description": "Which model and thresholds decided, how many messages fell in each band, average model time.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT model_version, ml_threshold_source AS source, round(min(ml_restrict_at)::numeric, 4) AS restrict_at, round(min(ml_block_at)::numeric, 4) AS block_at, count(*) AS scored, count(*) FILTER (WHERE ml_score >= ml_restrict_at AND ml_score < ml_block_at) AS restricted_band, count(*) FILTER (WHERE ml_score >= ml_block_at) AS block_band, round(avg(ml_ms)::numeric, 1) AS avg_ms, count(*) FILTER (WHERE ml_note = 'too_short') AS skipped_short FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND (ml_score IS NOT NULL OR ml_note IS NOT NULL) GROUP BY 1, 2 ORDER BY 1 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 89,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 33,
+      "type": "row",
+      "title": "Event drill-down",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 97,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 900,
+      "type": "table",
+      "title": "Event ${event_id}",
+      "description": "Paste an event id into the 'Event id' filter at the top, or click an id in any table.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 360
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", channel, mode, endpoint, message, action, enforced_action, cmp_action, reasons, decided_by, round(risk::numeric, 3) AS risk, policy_version, model_version, ruleset_version, round(latency_ms::numeric, 2) AS ms, session_id, message_id, session_state, user_id, ip, label, label_note FROM security_events_view WHERE id::text = ${event_id:sqlstring}",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 98,
+        "w": 24,
+        "h": 4
+      }
+    },
+    {
+      "id": 901,
+      "type": "table",
+      "title": "Every check of the event, in order",
+      "description": "What each check saw: its action, reason, score, time, whether it counted as a strike, and its full detail (rule ids, ML components and thresholds, bot features, conversation state, redactions).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "detail"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 900
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT position AS \"#\", check_name AS \"check\", action, reason, round(score::numeric, 4) AS score, round(duration_ms::numeric, 3) AS ms, strike, evidence, detail::text AS detail FROM security_event_checks_view WHERE event_id::text = ${event_id:sqlstring} ORDER BY position",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 102,
+        "w": 24,
+        "h": 10
+      }
+    },
+    {
+      "id": 36,
+      "type": "row",
+      "title": "Detection breakdown",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 112,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 37,
+      "type": "barchart",
+      "title": "Which check decided (flagged requests)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT decided_by, count(*) AS requests FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND action <> 'allow' GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 113,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 38,
+      "type": "barchart",
+      "title": "Rules fired",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT f->>'id' AS rule, count(*) AS times FROM security_events_view v JOIN security_event_checks_view k ON k.event_id = v.id AND k.check_name = 'rules', jsonb_array_elements(k.detail->'findings') f WHERE $__timeFilter(v.ts) AND (${channel:sqlstring} = 'all' OR v.channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR v.session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR v.mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR v.action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR v.cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR v.session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(v.reason_list)) AND (${user:sqlstring} = '' OR v.user_id = ${user:sqlstring} OR v.ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR v.message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1 ORDER BY 2 DESC LIMIT 15",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 113,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 39,
+      "type": "barchart",
+      "title": "Model-flagged messages: nearest attack family",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(ml_nearest_family, '-') AS family, count(*) AS messages FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND ml_score >= ml_restrict_at GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 113,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 40,
+      "type": "barchart",
+      "title": "Sensitive data found / redacted",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "normal",
+        "legend": {
+          "showLegend": true
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT t AS type, count(*) AS found, count(*) FILTER (WHERE t = ANY(string_to_array(coalesce(redacted, ''), ', '))) AS redacted FROM security_events_view, unnest(string_to_array(sensitive_found, ', ')) t WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND sensitive_found IS NOT NULL GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 121,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 41,
+      "type": "table",
+      "title": "Decisions by endpoint",
+      "description": "Useful with policies: sensitive endpoints should show more restrictions/blocks.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT endpoint, count(*) AS total, count(*) FILTER (WHERE action = 'allow') AS allow, count(*) FILTER (WHERE action = 'restrict') AS restrict, count(*) FILTER (WHERE action = 'throttle') AS throttle, count(*) FILTER (WHERE action = 'block') AS block, round(percentile_cont(0.95) WITHIN GROUP (ORDER BY latency_ms)::numeric, 1) AS p95_ms FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 121,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 42,
+      "type": "table",
+      "title": "Latency by check (from the audit trail)",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT k.check_name AS \"check\", count(*) AS runs, round(avg(k.duration_ms)::numeric, 3) AS avg_ms, round(percentile_cont(0.95) WITHIN GROUP (ORDER BY k.duration_ms)::numeric, 3) AS p95_ms, round(max(k.duration_ms)::numeric, 1) AS max_ms FROM security_events_view v JOIN security_event_checks_view k ON k.event_id = v.id WHERE $__timeFilter(v.ts) AND (${channel:sqlstring} = 'all' OR v.channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR v.session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR v.mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR v.action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR v.cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR v.session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(v.reason_list)) AND (${user:sqlstring} = '' OR v.user_id = ${user:sqlstring} OR v.ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR v.message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1 ORDER BY 3 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 121,
+        "w": 8,
+        "h": 8
+      }
+    },
+    {
+      "id": 43,
+      "type": "row",
+      "title": "AI replies (outbound)",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 129,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 44,
+      "type": "barchart",
+      "title": "Reply decisions by reason",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "auto",
+        "stacking": "none",
+        "legend": {
+          "showLegend": false
+        },
+        "xTickLabelRotation": 0
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(nullif(reasons, ''), 'delivered unchanged') AS reason, count(*) AS replies FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND mode IN ('outbound', 'proxy-outbound') GROUP BY 1 ORDER BY 2 DESC",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 130,
+        "w": 8,
+        "h": 9
+      }
+    },
+    {
+      "id": 45,
+      "type": "table",
+      "title": "Replies blocked or changed",
+      "description": "Canary leaks, someone else's data, secrets, record dumps \u2014 and replies delivered with redactions or links removed.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reply"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 360
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", mode, message AS reply, action, cmp_action, reasons, reply_scope, out_of_scope, redacted, images_removed, links_removed, canary_known, session_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND mode IN ('outbound', 'proxy-outbound') AND (action <> 'allow' OR redacted IS NOT NULL OR coalesce(images_removed, 0) + coalesce(links_removed, 0) > 0) ORDER BY ts DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 130,
+        "w": 16,
+        "h": 9
+      }
+    },
+    {
+      "id": 46,
+      "type": "row",
+      "title": "Bots and conversations",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 139,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 47,
+      "type": "timeseries",
+      "title": "Bot tiers over time",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "stacking": {
+              "mode": "normal"
+            },
+            "drawStyle": "bars",
+            "fillOpacity": 70
+          }
+        },
+        "overrides": []
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT $__timeGroupAlias(ts, '1m'), count(*) FILTER (WHERE bot_tier = 'suspect') AS suspect, count(*) FILTER (WHERE bot_tier = 'likely') AS likely, count(*) FILTER (WHERE bot_tier = 'bot') AS bot FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND bot_tier IS NOT NULL GROUP BY 1 ORDER BY 1",
+          "format": "time_series",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 140,
+        "w": 8,
+        "h": 9
+      }
+    },
+    {
+      "id": 48,
+      "type": "table",
+      "title": "Most bot-like identities",
+      "description": "Signals: timer, fast_typing, repetition, campaign, rate, automation_ua, missing_ua, hosting_ip.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(user_id, session_id, ip) AS identity, count(*) AS requests, round(max(bot_score)::numeric, 2) AS max_score, (array_agg(bot_tier ORDER BY bot_score DESC NULLS LAST))[1] AS worst_tier, string_agg(DISTINCT bot_signals, ' / ') AS signals, count(*) FILTER (WHERE action = 'throttle') AS throttled, max(ts) AS last_seen FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND bot_score > 0 GROUP BY 1 ORDER BY max_score DESC, requests DESC LIMIT 50",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 8,
+        "y": 140,
+        "w": 16,
+        "h": 9
+      }
+    },
+    {
+      "id": 49,
+      "type": "table",
+      "title": "Sessions at risk",
+      "description": "Sessions with blocked messages or replies, rising accumulated risk, or a lock. Paste a session id into the 'Session id' filter to see its timeline; reset one with DELETE /admin/sessions/{id}.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "last_message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT session_id, (array_agg(channel ORDER BY ts DESC))[1] AS channel, count(*) FILTER (WHERE mode = 'inspect') AS turns, count(*) FILTER (WHERE mode = 'outbound') AS replies, count(*) FILTER (WHERE action = 'block') AS blocked, round(max(conv_accumulated)::numeric, 2) AS max_risk, string_agg(DISTINCT conv_signals, ' / ') AS signals, bool_or('conversation_locked' = ANY(reason_list)) AS locked, (array_agg(cmp_action ORDER BY ts DESC))[1] AS last_cmp_action, (array_agg(message ORDER BY ts DESC))[1] AS last_message, max(ts) AS last_seen FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND session_id IS NOT NULL GROUP BY 1 HAVING count(*) FILTER (WHERE action <> 'allow') > 0 OR max(conv_accumulated) >= 0.5 ORDER BY blocked DESC, max_risk DESC LIMIT 50",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 149,
+        "w": 24,
+        "h": 9
+      }
+    },
+    {
+      "id": 50,
+      "type": "row",
+      "title": "Identities, bans, policies, accuracy",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 158,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 51,
+      "type": "table",
+      "title": "Most-refused identities",
+      "description": "Customers appear as cu_\u2026 (a keyed hash of CMP's customer id; ban or look one up with the raw id or the hash).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(user_id, ip) AS \"customer / IP\", count(DISTINCT session_id) AS sessions, count(*) FILTER (WHERE action = 'block') AS blocked, count(*) FILTER (WHERE action = 'throttle') AS throttled, count(*) FILTER (WHERE action = 'restrict') AS restricted, (array_agg(reasons ORDER BY ts DESC))[1] AS last_reasons, max(ts) AS last_seen FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND action <> 'allow' AND coalesce(user_id, ip) IS NOT NULL GROUP BY 1 ORDER BY blocked DESC, throttled DESC LIMIT 50",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 159,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
+      "id": 52,
+      "type": "table",
+      "title": "Active bans",
+      "description": "Lift one with DELETE /admin/bans/{id}?clear_history=true.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT b.created_at AS \"time\", b.entity_type AS type, b.value, b.reason, b.source, CASE WHEN b.permanent THEN 'permanent' ELSE to_char(b.expires_at, 'YYYY-MM-DD HH24:MI:SS') END AS until, b.evidence::text AS evidence FROM bans b WHERE b.revoked_at IS NULL AND (b.permanent OR b.expires_at > now()) AND (${session:sqlstring} = '' OR (b.entity_type = 'session' AND b.value = ${session:sqlstring})) ORDER BY b.created_at DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 159,
+        "w": 12,
+        "h": 9
+      }
+    },
+    {
+      "id": 53,
+      "type": "table",
+      "title": "Policies in force",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT p.name, coalesce(p.channel, 'any') AS channel, coalesce(p.session_state, 'any') AS session_state, p.endpoint_pattern AS endpoint, p.mode, p.actions::text AS action_overrides, p.thresholds::text AS thresholds, p.version, p.updated_at FROM policies p WHERE p.active AND (${channel:sqlstring} = 'all' OR p.channel IS NULL OR p.channel = ${channel:sqlstring}) ORDER BY p.channel NULLS FIRST, p.session_state NULLS FIRST, p.endpoint_pattern",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 168,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 54,
+      "type": "table",
+      "title": "Monitor mode \u2014 what would have been enforced",
+      "description": "Decisions a monitor-mode policy recorded but did not enforce. Review before switching to enforce.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "would_have"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT ts AS \"time\", channel, endpoint, message, action AS would_have, reasons, policy_version, session_id, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND monitor_only ORDER BY ts DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 12,
+        "y": 168,
+        "w": 12,
+        "h": 8
+      }
+    },
+    {
+      "id": 55,
+      "type": "table",
+      "title": "Accuracy labels",
+      "description": "Events an admin marked false_positive / true_positive (POST /admin/events/{id}/label).",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "action"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "allow": {
+                        "color": "green",
+                        "index": 0
+                      },
+                      "restrict": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "throttle": {
+                        "color": "purple",
+                        "index": 2
+                      },
+                      "block": {
+                        "color": "red",
+                        "index": 3
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "message"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 320
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "id"
+            },
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Every check of this event",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=901"
+                  },
+                  {
+                    "title": "Event summary",
+                    "url": "/d/cmp-security-gateway/cmp-security-gateway?${__url_time_range}&var-event_id=${__value.raw}&viewPanel=900"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT labeled_at AS \"time\", label, label_note AS note, message, action, reasons, decided_by, round(ml_score::numeric, 3) AS ml_score, id FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') AND label IS NOT NULL ORDER BY labeled_at DESC LIMIT 100",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 0,
+        "y": 176,
+        "w": 16,
+        "h": 8
+      }
+    },
+    {
+      "id": 56,
+      "type": "stat",
+      "title": "Labelled precision",
+      "description": "Of the flagged events someone labelled, the share that were real attacks.",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT round(100.0 * count(*) FILTER (WHERE label = 'true_positive') / NULLIF(count(*) FILTER (WHERE label IS NOT NULL), 0), 1) FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%')",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 176,
+        "w": 8,
+        "h": 4
+      }
+    },
+    {
+      "id": 57,
+      "type": "table",
+      "title": "Versions that decided",
+      "description": "",
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "security-db"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "security-db"
+          },
+          "rawSql": "SELECT coalesce(model_version, '-') AS model, coalesce(ruleset_version, '-') AS ruleset, coalesce(policy_version::text, '-') AS policy_version, count(*) AS decisions, min(ts) AS first_seen, max(ts) AS last_seen FROM security_events_view WHERE $__timeFilter(ts) AND (${channel:sqlstring} = 'all' OR channel = ${channel:sqlstring}) AND (${state:sqlstring} = 'all' OR session_state = ${state:sqlstring}) AND (${mode:sqlstring} = 'all' OR mode = ${mode:sqlstring}) AND (${action:sqlstring} = 'all' OR action = ${action:sqlstring}) AND (${cmp_action:sqlstring} = 'all' OR cmp_action = ${cmp_action:sqlstring}) AND (${session:sqlstring} = '' OR session_id = ${session:sqlstring}) AND (${reason:sqlstring} = 'all' OR ${reason:sqlstring} = ANY(reason_list)) AND (${user:sqlstring} = '' OR user_id = ${user:sqlstring} OR ip = ${user:sqlstring}) AND (${search:sqlstring} = '' OR message ILIKE '%' || ${search:sqlstring} || '%') GROUP BY 1, 2, 3 ORDER BY last_seen DESC LIMIT 20",
+          "format": "table",
+          "rawQuery": true,
+          "editorMode": "code"
+        }
+      ],
+      "gridPos": {
+        "x": 16,
+        "y": 180,
+        "w": 8,
+        "h": 4
+      }
+    }
+  ]
+}

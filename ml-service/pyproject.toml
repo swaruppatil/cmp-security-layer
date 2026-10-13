@@ -1,0 +1,36 @@
+[project]
+name = "cmp-security-ml"
+version = "0.1.0"
+description = "ML/NLP detection service for the CMP security gateway"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "scikit-learn>=1.5",
+    "numpy>=1.26",
+    "joblib>=1.4",
+    "fastembed>=0.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "httpx>=0.27",
+    "ruff>=0.6",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"evaluation/evaluate.py" = ["E501"]  # markdown table headers

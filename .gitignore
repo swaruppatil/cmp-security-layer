@@ -1,0 +1,15 @@
+.env
+node_modules/
+dist/
+coverage/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+ml-service/models/
+*.log
+ml-service/.cache/
+datasets/public/raw/
+gateway/.try_key
+docs/

@@ -1,0 +1,104 @@
+# Local stack for the CMP security gateway prototype.
+# Host ports default to 1xxxx to avoid clashing with other local services (override in .env).
+# Named volumes only — Docker Desktop cannot bind-mount folders under ~/Desktop (see PLAN.md §14).
+name: cmp-security
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes", "--save", ""]
+    ports: ["${HOST_REDIS_PORT:-16379}:6379"]
+    volumes: ["redis-data:/data"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: sec
+      POSTGRES_PASSWORD: sec
+      POSTGRES_DB: security
+    ports: ["${HOST_POSTGRES_PORT:-15432}:5432"]
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sec -d security"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  ml-service:
+    # Context is the repo root: the image trains its model from ./datasets at build time.
+    build:
+      context: .
+      dockerfile: ml-service/Dockerfile
+    environment:
+      ML_LOG_LEVEL: info
+    ports: ["${HOST_ML_PORT:-18000}:8000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      start_period: 30s
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock-ai:
+    build: ./mock-ai
+    ports: ["${HOST_MOCK_AI_PORT:-19000}:9000"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:9000/health').status==200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build: ./gateway
+    env_file: [.env]
+    environment:
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://sec:sec@postgres:5432/security
+      ML_URL: http://ml-service:8000
+      UPSTREAM_AI_URL: http://mock-ai:9000
+    ports: ["${HOST_GATEWAY_PORT:-18080}:8080"]
+    depends_on:
+      redis: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+      ml-service: { condition: service_healthy }
+      mock-ai: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/health').status==200 else 1)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Optional dashboards: docker compose --profile observability up -d --wait
+  prometheus:
+    profiles: [observability]
+    build: ./observability/prometheus
+    environment:
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+    ports: ["${HOST_PROMETHEUS_PORT:-19090}:9090"]
+    volumes: [prometheus-data:/prometheus]
+    depends_on:
+      gateway: { condition: service_healthy }
+
+  grafana:
+    profiles: [observability]
+    build: ./observability/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-grafana}
+      DASHBOARD_DB_PASSWORD: ${DASHBOARD_DB_PASSWORD:-change-me-dashboard-reader}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/gateway.json
+    ports: ["${HOST_GRAFANA_PORT:-13000}:3000"]
+    volumes: [grafana-data:/var/lib/grafana/data]
+    depends_on: [prometheus, postgres]
+
+volumes:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:

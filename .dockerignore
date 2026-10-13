@@ -1,0 +1,13 @@
+# Applies to builds whose context is the repository root (ml-service).
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.mypy_cache
+**/node_modules
+ml-service/models
+ml-service/evaluation/reports
+.env
+.git
+ml-service/.cache
+datasets/public/raw

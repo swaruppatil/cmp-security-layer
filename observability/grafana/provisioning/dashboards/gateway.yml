@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: gateway
+    folder: CMP Security
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

@@ -1,0 +1,13 @@
+# Scrapes the gateway's /metrics. The admin key is written to /prometheus/admin_key at start-up
+# (see the Dockerfile) and sent as a bearer token; it never lives in this file.
+global:
+  scrape_interval: 5s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: gateway
+    metrics_path: /metrics
+    authorization:
+      type: Bearer
+      credentials_file: /prometheus/admin_key
+    static_configs:
+      - targets: ["gateway:8080"]

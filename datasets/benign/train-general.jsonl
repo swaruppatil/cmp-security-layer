@@ -1,0 +1,225 @@
+{"text": "Give me a short summary of a prompt", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is a prompt?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a prompt?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of prompt engineering?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does prompt engineering work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about prompt engineering?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a large language model?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about a large language model?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is a large language model?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does machine learning work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain machine learning in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is machine learning?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about a neural network?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does a neural network work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a neural network in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about a firewall?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is a firewall a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is a firewall?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a password manager in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of a password manager", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a password manager?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does two-factor authentication work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "what's the deal with two-factor authentication", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of two-factor authentication", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with an API", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does an API work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about an API?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is a database index a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of a database index", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with a database index", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of a system administrator", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a system administrator in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is a system administrator a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of encryption", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does encryption work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "what's the deal with encryption", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about a VPN?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a VPN in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about a VPN?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a chatbot in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about a chatbot?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of a chatbot", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does open source software work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is open source software?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "pros and cons of open source software?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of cloud computing", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain cloud computing in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about cloud computing?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with inflation", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain inflation in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is inflation a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of climate change?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of climate change", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain climate change in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of photosynthesis?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is photosynthesis a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is photosynthesis?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of the stock market", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about the stock market?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of the stock market?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about a mortgage?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a mortgage?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is a mortgage a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is compound interest a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain compound interest in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "pros and cons of compound interest?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about the French revolution?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is the French revolution?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is the French revolution a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of the Roman empire", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about the Roman empire?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is the Roman empire?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does black holes work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain black holes in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of black holes", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is vaccines?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is vaccines a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about vaccines?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "pros and cons of renewable energy?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What is renewable energy?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain renewable energy in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is electric cars a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain electric cars in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of electric cars", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a heat pump?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does a heat pump work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about a heat pump?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain sourdough bread in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with sourdough bread", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about sourdough bread?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with intermittent fasting", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is intermittent fasting a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain intermittent fasting in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain the Olympic games in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How does the Olympic games work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of the Olympic games", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain jet lag in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is jet lag a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "what's the deal with jet lag", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's the deal with carbon offsets", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "pros and cons of carbon offsets?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of carbon offsets", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about the northern lights?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of the northern lights", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about the northern lights?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Give me a short summary of a sabbatical", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Is a sabbatical a good idea for beginners?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about a sabbatical?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do people talk so much about remote work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of remote work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about remote work?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Pros and cons of a credit score?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Explain a credit score in simple terms", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Can you tell me more about a credit score?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne un prompt?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de un prompt?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que un prompt?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer l'intelligence artificielle simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que l'intelligence artificielle?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne l'intelligence artificielle?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne un pare-feu?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que un pare-feu?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de un pare-feu?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne un gestionnaire de mots de passe?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer un gestionnaire de mots de passe simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que un gestionnaire de mots de passe?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que l'authentification à deux facteurs?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de l'authentification à deux facteurs?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne l'authentification à deux facteurs?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de le chiffrement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que le chiffrement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer le chiffrement simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne l'inflation?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que l'inflation?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer l'inflation simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de le changement climatique?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer le changement climatique simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que le changement climatique?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne la photosynthèse?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que la photosynthèse?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer la photosynthèse simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer un prêt hypothécaire simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de un prêt hypothécaire?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que un prêt hypothécaire?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne les énergies renouvelables?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer les énergies renouvelables simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de les énergies renouvelables?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que le décalage horaire?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer le décalage horaire simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de le décalage horaire?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que le télétravail?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de le télétravail?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer le télétravail simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Qu'est-ce que les aurores boréales?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne les aurores boréales?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de les aurores boréales?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Peux-tu m'expliquer la Révolution française simplement?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quels sont les avantages et inconvénients de la Révolution française?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment fonctionne la Révolution française?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Was ist ein Prompt?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir ein Prompt einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert ein Prompt?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir künstliche Intelligenz einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist künstliche Intelligenz?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert künstliche Intelligenz?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist eine Firewall?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir eine Firewall einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat eine Firewall?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir ein Passwortmanager einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat ein Passwortmanager?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert ein Passwortmanager?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert Verschlüsselung?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist Verschlüsselung?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat Verschlüsselung?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert Inflation?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir Inflation einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist Inflation?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert der Klimawandel?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist der Klimawandel?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat der Klimawandel?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert Photosynthese?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist Photosynthese?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat Photosynthese?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert erneuerbare Energie?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat erneuerbare Energie?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist erneuerbare Energie?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat ein Elektroauto?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert ein Elektroauto?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist ein Elektroauto?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir Homeoffice einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert Homeoffice?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat Homeoffice?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert eine Wärmepumpe?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir eine Wärmepumpe einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was ist eine Wärmepumpe?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat der Jetlag?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert der Jetlag?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir der Jetlag einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie funktioniert die Polarlichter?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Vor- und Nachteile hat die Polarlichter?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Kannst du mir die Polarlichter einfach erklären?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Recommend a good book about the history of aviation", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What should I pack for a week of hiking in the Rockies?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Write a short birthday message for my coworker", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How do I reset my home router?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What are some tips for sleeping on a long flight?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Translate 'where is the train station' into Portuguese", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How do I stop my phone from asking me to update all the time?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What does 'role-playing game' mean?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Who wrote the novel Pride and Prejudice?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How many time zones does Canada have?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Best way to learn Python as a complete beginner?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How do security researchers report bugs responsibly?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What are the rules of cricket, briefly?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Why do some websites ask me to prove I'm not a robot?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "What's a good password policy for a small business?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "How do I write instructions that a new employee will actually follow?", "label": "benign", "family": "general_question", "lang": "en", "source": "build_benign_general.py"}
+{"text": "Recommande-moi un bon roman québécois", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment préparer une tourtière?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Quelle est la capitale de l'Australie?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Comment apprendre la programmation quand on débute?", "label": "benign", "family": "general_question", "lang": "fr", "source": "build_benign_general.py"}
+{"text": "Wie backe ich ein einfaches Brot?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Welche Sehenswürdigkeiten gibt es in Montreal?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Wie lerne ich am besten eine neue Sprache?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}
+{"text": "Was sollte ich bei einem Vorstellungsgespräch beachten?", "label": "benign", "family": "general_question", "lang": "de", "source": "build_benign_general.py"}

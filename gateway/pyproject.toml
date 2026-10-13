@@ -1,0 +1,72 @@
+[project]
+name = "cmp-security-gateway"
+version = "0.2.0"
+description = "AI security gateway: auth, bans, rate limiting, prompt-attack detection, policy decisions"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7",
+    "pydantic-settings>=2.3",
+    "asyncpg>=0.29",
+    "redis>=5.0",
+    "httpx>=0.27",
+    "orjson>=3.10",
+    "cachetools>=5.3",
+    "prometheus-client>=0.20",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "types-cachetools",
+    "asyncpg-stubs",
+    "fakeredis[lua]>=2.23",
+    "pyyaml>=6.0.3",
+    "types-pyyaml>=6.0.12.20260906",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+markers = ["integration: needs the docker compose stack (Redis, Postgres, mock-ai)"]
+addopts = "-m 'not integration'"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "ASYNC", "S"]
+ignore = ["S101"]  # assert is fine in tests
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+plugins = ["pydantic.mypy"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI dependency injection uses calls in argument defaults by design.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Header", "fastapi.Query", "app.security.require_scope"]
+
+[tool.ruff.lint.per-file-ignores]
+# Regex rules read best one pattern per line.
+"app/detectors/rules.py" = ["E501"]
+"app/detectors/sensitive.py" = ["E501"]
+# Markdown report tables.
+"scripts/eval_multiturn.py" = ["E501"]
+"scripts/try_message.py" = ["E501"]
+"scripts/coverage_traffic.py" = ["E501"]
+# SQL statements and reference tables in docstrings read best unwrapped.
+# S608: queries only join fixed fragments from this file; every value is a bind parameter ($n).
+"app/db/repository.py" = ["E501", "S608"]
+"app/policy/service.py" = ["E501"]
+"app/metrics.py" = ["E501"]
+# Test fixtures use words like "secret"/"password" as data, not credentials.
+"tests/**" = ["S105", "S106"]
