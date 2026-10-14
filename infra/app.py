@@ -37,29 +37,52 @@ aws_env = cdk.Environment(
     account=cfg.account or os.environ.get("CDK_DEFAULT_ACCOUNT"),
     region=cfg.region or os.environ.get("CDK_DEFAULT_REGION"),
 )
+# Accounts bootstrapped with CMP's custom toolkit (qualifier such as "bat-cac1") name the bucket,
+# the repository and the roles without the region suffix the default synthesizer expects.
+synth_kwargs: dict[str, object] = {}
+if cfg.cdk_qualifier:
+    q, acct = cfg.cdk_qualifier, cfg.account
+
+    def role(kind: str) -> str:
+        return f"arn:${{AWS::Partition}}:iam::{acct}:role/cdk-{q}-{kind}-role-{acct}"
+
+    synth_kwargs["synthesizer"] = cdk.DefaultStackSynthesizer(
+        qualifier=q,
+        file_assets_bucket_name=f"cdk-{q}-assets-{acct}",
+        image_assets_repository_name=f"cdk-{q}-container-assets-{acct}",
+        deploy_role_arn=role("deploy"),
+        file_asset_publishing_role_arn=role("file-publishing"),
+        image_asset_publishing_role_arn=role("image-publishing"),
+        cloud_formation_execution_role=role("cfn-exec"),
+        lookup_role_arn=role("lookup"),
+        bootstrap_stack_version_ssm_parameter=f"/cdk-bootstrap/{q}/version",
+    )
 
 network = NetworkStack(
     app,
-    f"{cfg.prefix}-network",
+    cfg.rn("network"),
     cfg,
     env=aws_env,
+    **synth_kwargs,
     description=f"{cfg.prefix}: VPC, endpoints, security groups",
 )
 data = DataStack(
     app,
-    f"{cfg.prefix}-data",
+    cfg.rn("data"),
     cfg,
     network,
     env=aws_env,
+    **synth_kwargs,
     description=f"{cfg.prefix}: Redis, PostgreSQL, secrets, S3",
 )
 compute = ComputeStack(
     app,
-    f"{cfg.prefix}-compute",
+    cfg.rn("compute"),
     cfg,
     network,
     data,
     env=aws_env,
+    **synth_kwargs,
     description=f"{cfg.prefix}: ECS services and ALB",
 )
 # Stack order (network → data → compute) follows from the cross-stack references.

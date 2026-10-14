@@ -6,16 +6,16 @@ Inbound (``POST /v1/inspect``):
 * ``deliver`` — allow: publish the message to the AI agent (``redacted_message`` instead, if present)
 * ``forward_without_tools`` — restrict: publish with tools / account actions switched off
 * ``retry_later`` — throttle (rate limit, bot cooldown): wait ``retry_after_seconds``, "one moment"
-* ``refuse`` — block: a canned "I can't help with that" reply
-* ``handoff_to_agent`` — the session is locked, or this is its ``CMP_HANDOFF_AFTER_BLOCKS``-th
-  block: transfer the contact to a live agent
+* ``refuse`` — block: a canned "I can't help with that" reply. Repeated attacks are not escalated
+  through CMP: the session's strikes ban it for a growing period (``BAN_LADDER_SECONDS``), which
+  the next message sees as ``retry_later`` and then ``end_contact``
 * ``end_contact`` — the session, customer, device or IP is banned for longer than
   ``CMP_SHORT_BAN_SECONDS`` (or permanently): close the contact politely. A shorter ban is
   ``retry_later``, with ``retry_after_seconds`` set to when it ends.
 
 Outbound (``POST /v1/inspect/outbound``): ``deliver`` (send ``deliver``, never the original reply),
-``send_fallback`` (nothing may be sent: use a safe fallback message) or ``handoff_to_agent`` (the
-reply promises money or approvals the AI cannot make: a person takes over).
+``send_fallback`` (nothing may be sent, including a reply that promises money or approvals the AI
+cannot make: use a safe fallback message).
 
 Tool results (``POST /v1/inspect/tool-result``, ``app/routes/inspect_tool_results.py``): ``deliver``
 (give the model ``deliver``), ``deliver_without_tools`` (give the model ``deliver`` — suspicious pieces
@@ -35,7 +35,6 @@ CmpAction = Literal[
     "forward_without_tools",
     "retry_later",
     "refuse",
-    "handoff_to_agent",
     "end_contact",
     "send_fallback",
     "deliver_without_tools",
@@ -54,12 +53,8 @@ def ban_seconds_left(decision: Decision) -> float | None:
     return max(0.0, (ends - datetime.now(UTC)).total_seconds())
 
 
-def inbound_action(
-    decision: Decision, prior_blocks: int, handoff_after_blocks: int, short_ban_seconds: int = 900
-) -> CmpAction:
-    """``prior_blocks``: blocks this session already had before this message. May set
-    ``decision.retry_after_seconds`` (a short ban)."""
-    reasons = set(decision.reasons)
+def inbound_action(decision: Decision, short_ban_seconds: int = 900) -> CmpAction:
+    """May set ``decision.retry_after_seconds`` (a short ban)."""
     if decision.action == Action.THROTTLE:
         return "retry_later"
     if decision.action == Action.BLOCK:
@@ -69,16 +64,14 @@ def inbound_action(
                 decision.retry_after_seconds = max(1, int(left + 0.999))
                 return "retry_later"
             return "end_contact"
-        if "conversation_locked" in reasons or prior_blocks + 1 >= handoff_after_blocks:
-            return "handoff_to_agent"
         return "refuse"
     if decision.action == Action.RESTRICT:
-        return "handoff_to_agent" if "conversation_locked" in reasons else "forward_without_tools"
+        return "forward_without_tools"
     return "deliver"
 
 
-# Restricted replies whose content needs a person: CMP hands the contact to an agent instead of
-# delivering the AI's text.
+# Restricted replies whose content must not reach the customer as written: CMP sends its fallback
+# instead of the AI's text.
 REVIEW_REASONS = frozenset({"unverified_commitment"})
 
 
@@ -86,5 +79,5 @@ def outbound_action(deliver: str | None, decision: Decision | None = None) -> Cm
     if deliver is None:
         return "send_fallback"
     if decision is not None and decision.action == Action.RESTRICT and REVIEW_REASONS & set(decision.reasons):
-        return "handoff_to_agent"
+        return "send_fallback"
     return "deliver"

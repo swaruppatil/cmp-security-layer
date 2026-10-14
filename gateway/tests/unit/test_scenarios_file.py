@@ -72,7 +72,7 @@ def test_expectations():
         "checks": [{"name": "bot", "detail": {"tier": "likely", "signals": ["timer", "repetition"]}}],
         "deliver": None,
     }
-    assert check(resp, 200, {"action": "block", "cmp_action": ["refuse", "handoff_to_agent"]}) == []
+    assert check(resp, 200, {"action": "block", "cmp_action": ["refuse", "retry_later"]}) == []
     assert check(resp, 200, {"reasons_any": ["ml_injection", "instruction_override"]}) == []
     assert check(resp, 200, {"redacted": ["card"], "found": ["email"], "not_redacted": ["email"]}) == []
     assert (

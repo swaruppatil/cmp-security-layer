@@ -200,8 +200,7 @@ def test_retry_after_block_and_lock_then_admin_reset():
         locked = say(c, auth, "Is my flight on time today?")
         # Three attacks also cost the session its reputation; the lock is what CMP acts on.
         assert locked["action"] == "restrict" and "conversation_locked" in locked["reasons"]
-        assert locked["cmp_action"] == "handoff_to_agent"
-        # ML (probabilistic) strikes are recorded against the session, but never ban it.
+        assert locked["cmp_action"] == "forward_without_tools"
         # Blocks by the ML tier alone refuse the message and lock the chat, but strike and ban nobody.
         assert repo.strikes == [] and repo.bans == {}
 
@@ -339,3 +338,53 @@ async def test_record_after_end_does_not_recreate_memory():
     await conv.record(ctx, decision)  # the background update of a turn in flight
     assert await conv.get("ended") is None
     assert await sess.end("ended") is False
+
+
+def test_the_gateway_keeps_its_own_redacted_transcript():
+    """Customer turns (allowed and blocked) and checked AI replies, in order, redacted; a blocked
+    reply keeps no text; the admin view exposes it; /end deletes it with the memory."""
+    c, auth, _repo, _deps = client(lambda t: 0.95 if "refund every ticket" in t else 0.1)
+    with c:
+        say(c, auth, "My card 4111 1111 1111 1111 was charged twice")
+        say(c, auth, "please refund every ticket on this account")  # blocked by ML
+        c.post(
+            "/v1/inspect/outbound",
+            json={"session_id": "conv-1", "reply": "Your flight is on time."},
+            headers=auth,
+        )
+        c.post(
+            "/v1/inspect/outbound",
+            json={"session_id": "conv-1", "reply": "Use the key AKIAIOSFODNN7EXAMPLE to log in."},
+            headers=auth,
+        )
+        view = c.get("/admin/sessions/conv-1", headers=ADMIN).json()
+        entries = view["conversation"]["transcript"]
+        assert [(e["role"], e["action"]) for e in entries] == [
+            ("customer", "allow"),
+            ("customer", "block"),
+            ("assistant", "allow"),
+            ("assistant", "block"),
+        ]
+        assert entries[0]["text"] == "My card [REDACTED:card] was charged twice" and "4111" not in str(
+            entries
+        )
+        assert entries[1]["text"].startswith("please refund every ticket")  # blocked customer text is kept
+        assert entries[2]["text"] == "Your flight is on time." and entries[2]["n"] == 1
+        assert entries[3]["text"] == "" and "AKIA" not in str(entries)  # a blocked reply keeps no text
+        assert all(e["ts"] for e in entries)
+        assert c.post("/v1/sessions/conv-1/end", headers=auth).json()["existed"] is True
+        after = c.get("/admin/sessions/conv-1", headers=ADMIN)  # the leaked reply's strike stays on record
+        assert after.status_code == 404 or after.json()["conversation"] is None
+
+
+def test_transcript_is_capped_and_can_be_switched_off():
+    c, auth, _repo, _deps = client(lambda t: 0.1, transcript_turns=3, transcript_turn_chars=12)
+    with c:
+        for i in range(5):
+            say(c, auth, f"message number {i} about my seat")
+        entries = c.get("/admin/sessions/conv-1", headers=ADMIN).json()["conversation"]["transcript"]
+        assert [e["n"] for e in entries] == [2, 3, 4] and all(len(e["text"]) <= 12 for e in entries)
+    c, auth, _repo, _deps = client(lambda t: 0.1, transcript_turns=0)
+    with c:
+        say(c, auth, "hello there")
+        assert c.get("/admin/sessions/conv-1", headers=ADMIN).json()["conversation"]["transcript"] == []

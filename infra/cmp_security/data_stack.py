@@ -40,7 +40,7 @@ class DataStack(Stack):
             return sm.Secret(
                 self,
                 cid,
-                secret_name=f"{cfg.prefix}/{name}",
+                secret_name=cfg.secret_name(name),
                 description=f"{cfg.prefix} {name}",
                 generate_secret_string=sm.SecretStringGenerator(
                     exclude_punctuation=True, password_length=length, include_space=False
@@ -60,7 +60,7 @@ class DataStack(Stack):
         self.enricher_api_key = sm.Secret(
             self,
             "EnricherApiKey",
-            secret_name=f"{cfg.prefix}/cmp-enricher-api-key",
+            secret_name=cfg.secret_name("cmp-enricher-api-key"),
             description=f"{cfg.prefix} caller key for CMP's enricher (prefix + secret)",
             generate_secret_string=sm.SecretStringGenerator(
                 secret_string_template=json.dumps({"prefix": self.enricher_key_prefix}),
@@ -78,13 +78,13 @@ class DataStack(Stack):
             "RedisSubnets",
             description=f"{cfg.prefix} redis subnets",
             subnet_ids=private.subnet_ids,
-            cache_subnet_group_name=f"{cfg.prefix}-redis",
+            cache_subnet_group_name=cfg.rn("redis"),
         )
         if cfg.redis_multi_az:
             group = elasticache.CfnReplicationGroup(
                 self,
                 "Redis",
-                replication_group_id=f"{cfg.prefix}-redis",
+                replication_group_id=cfg.rn("redis"),
                 replication_group_description=f"{cfg.prefix} security gateway state",
                 engine="redis",
                 engine_version="7.1",
@@ -106,7 +106,7 @@ class DataStack(Stack):
             node = elasticache.CfnCacheCluster(
                 self,
                 "Redis",
-                cluster_name=f"{cfg.prefix}-redis",
+                cluster_name=cfg.rn("redis"),
                 engine="redis",
                 engine_version="7.1",
                 cache_node_type=cfg.redis_node_type,
@@ -122,13 +122,13 @@ class DataStack(Stack):
         self.db = rds.DatabaseInstance(
             self,
             "Postgres",
-            instance_identifier=f"{cfg.prefix}-postgres",
+            instance_identifier=cfg.rn("postgres"),
             engine=rds.DatabaseInstanceEngine.postgres(version=rds.PostgresEngineVersion.VER_16),
             instance_type=ec2.InstanceType(cfg.db_instance_class),
             vpc=network.vpc,
             vpc_subnets=network.private_selection,
             security_groups=[network.sg_db],
-            credentials=rds.Credentials.from_generated_secret("sec", secret_name=f"{cfg.prefix}/postgres"),
+            credentials=rds.Credentials.from_generated_secret("sec", secret_name=cfg.secret_name("postgres")),
             database_name="securitylayer",  # "security" is a reserved word for RDS PostgreSQL
             multi_az=cfg.db_multi_az,
             allocated_storage=20 if not cfg.db_multi_az else 100,

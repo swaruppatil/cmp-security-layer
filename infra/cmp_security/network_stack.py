@@ -43,7 +43,7 @@ class NetworkStack(Stack):
             self.vpc = ec2.Vpc(
                 self,
                 "Vpc",
-                vpc_name=f"{cfg.prefix}-vpc",
+                vpc_name=cfg.rn("vpc"),
                 ip_addresses=ec2.IpAddresses.cidr(cfg.vpc_cidr),
                 max_azs=cfg.max_azs,
                 nat_gateways=0,

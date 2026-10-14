@@ -84,6 +84,18 @@ async def get_session(
                 for a in state.assistant
             ],
             "blocked_turns": [b.n for b in state.blocked],
+            # The gateway's own redacted copy of the exchange (customer turns and checked AI replies).
+            "transcript": [
+                {
+                    "n": e.n,
+                    "role": e.role,
+                    "ts": e.ts,
+                    "action": e.action,
+                    "reasons": e.reasons,
+                    "text": e.text,
+                }
+                for e in state.transcript
+            ],
         }
     return out
 

@@ -46,8 +46,6 @@ class Settings(BaseSettings):
     # never hold the raw id. Change this for any shared environment; changing it resets per-customer
     # reputation and strikes.
     identity_hash_key: SecretStr = SecretStr("dev-only-identity-hash-key-change-me")
-    # After this many blocked messages in one session, a block becomes "handoff_to_agent" for CMP.
-    cmp_handoff_after_blocks: int = Field(2, gt=0)
     # A ban ending within this many seconds is "retry_later" for CMP; a longer one is "end_contact".
     cmp_short_ban_seconds: int = Field(900, ge=0)
 
@@ -172,7 +170,7 @@ class Settings(BaseSettings):
     strike_window_seconds: int = Field(30 * 24 * 3600, gt=0)
     # A block whose only striking check is one of these (probabilistic, single-signal) does not strike
     # the customer, device or IP: the message is still refused and the session's block count still
-    # grows (conversation lock, handoff), but one model verdict never starts the ban ladder. Two
+    # grows (conversation lock), but one model verdict never starts the ban ladder. Two
     # striking checks, or a deterministic one, always strike.
     single_signal_no_strike: str = "ml,rules"
     # Auto-ban durations by strike count (1st, 2nd, 3rd, …). Beyond the list the last value repeats,
@@ -211,6 +209,12 @@ class Settings(BaseSettings):
     conversation_window: int = Field(10, gt=0)  # turns remembered per conversation
     conversation_ttl_seconds: int = Field(3600, gt=0)  # memory expires this long after the last turn
     conv_turn_chars: int = Field(500, gt=0)  # characters of each turn kept (for the window re-score)
+    # The gateway's own copy of the conversation: every analysed customer turn (allowed or blocked)
+    # and every AI reply it checked, redacted, newest TRANSCRIPT_TURNS kept, TRANSCRIPT_TURN_CHARS
+    # each, expiring with the memory. Drift and multi-turn analysis read it; /admin/sessions shows it.
+    # 0 turns switches it off.
+    transcript_turns: int = Field(60, ge=0)
+    transcript_turn_chars: int = Field(2000, gt=0)
     # Window re-score: the last N turns the AI actually saw (this one included), joined and scored again.
     conv_window_turns: int = Field(4, ge=2)
     # The joined window must score this much above its best single turn to count as a split payload.

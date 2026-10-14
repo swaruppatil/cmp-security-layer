@@ -38,6 +38,18 @@ class EnvConfig:
     dns_namespace: str  # private DNS namespace for service discovery (ml.<namespace>)
     gateway: ServiceSize
     ml: ServiceSize
+    # Naming. Environments created from 2026-10-15 on use "<resource_prefix>-<component>-<env>":
+    # stacks cmp-security-layer-network-bat, services cmp-security-layer-gateway-bat, RDS
+    # cmp-security-layer-postgres-bat, secrets cmp-security-layer/admin-api-key-bat, log groups
+    # /cmp-security-layer-gateway-bat, roles ac-cct-cmp-security-layer-gateway-task-bat, cluster
+    # cmp-security-layer-bat. ``dev`` (resource_prefix None) keeps the earlier "security-layer-dev-…"
+    # names until it is redeployed under the new scheme.
+    resource_prefix: str | None = None
+    # CDK bootstrap qualifier of the account when it is not the default (hnb659fds). CMP's accounts
+    # were bootstrapped with a custom template whose bucket, repository and roles carry no region
+    # suffix (cdk-<q>-assets-<account>, cdk-<q>-deploy-role-<account>, ...): the synthesizer is
+    # told those names explicitly (see app.py).
+    cdk_qualifier: str | None = None
     # ---- network: either join an existing VPC (CMP's) or create one
     existing_vpc_id: str | None = None
     existing_vpc_cidr: str | None = None
@@ -92,6 +104,10 @@ class EnvConfig:
     # ---- gateway settings that depend on the environment
     never_ban_cidrs: list[str] = field(default_factory=list)  # CMP egress ranges; the VPC CIDR is added
     ml_timeout_ms: int = 150
+    # Automatic ban length for a session's / customer's 1st, 2nd, 3rd… strike (an attack both the
+    # rules and the model flag, or deterministic evidence). CMP sees a ban of up to
+    # cmp_short_ban_seconds as "retry_later" and a longer one as "end_contact".
+    ban_ladder_seconds: list[int] = field(default_factory=lambda: [60, 900, 86400])
     log_retention_days: int = 30
     destroy_data_on_delete: bool = False  # cdk destroy removes stores and their data
     tags: dict[str, str] = field(default_factory=dict)
@@ -102,7 +118,28 @@ class EnvConfig:
 
     @property
     def prefix(self) -> str:
-        return f"security-layer-{self.name}"
+        """Label for descriptions and tags (and the legacy name prefix)."""
+        return (
+            f"{self.resource_prefix}-{self.name}" if self.resource_prefix else f"security-layer-{self.name}"
+        )
+
+    def rn(self, component: str) -> str:
+        """Resource name for ``component``: new scheme ``<base>-<component>-<env>``, legacy ``<prefix>-<component>``."""
+        if self.resource_prefix:
+            return f"{self.resource_prefix}-{component}-{self.name}"
+        return f"{self.prefix}-{component}"
+
+    @property
+    def cluster_name(self) -> str:
+        return f"{self.resource_prefix}-{self.name}" if self.resource_prefix else f"{self.prefix}-security"
+
+    def secret_name(self, name: str) -> str:
+        if self.resource_prefix:
+            return f"{self.resource_prefix}/{name}-{self.name}"
+        return f"{self.prefix}/{name}"
+
+    def log_group(self, service: str) -> str:
+        return f"/{self.rn(service)}" if self.resource_prefix else f"/{self.prefix}/{service}"
 
 
 # CMP ARC environment, AC-CCT-INT account (982081066747), ca-central-1. Shared INT MSK cluster.
@@ -129,6 +166,34 @@ INT_MSK_CLUSTER_ARN = (
     "arn:aws:kafka:ca-central-1:982081066747:cluster/ac-cct-msk-int-cac1/"
     "99453162-03e2-45f0-96c1-45d24ab24a86-3"
 )
+
+# CMP BAT environment, AC-CCT-BAT account (209479273605), ca-central-1. Values from
+# ``ac-cct-channel-manager-proxy/configs/config-bat.ini`` (2026-10-15); the VPC CIDR and the Lambda
+# security groups are read from the account at the integration step.
+BAT_VPC_ID = "vpc-004a501b6a94f294a"
+BAT_VPC_CIDR = "10.111.200.0/22"  # AC-CCT-BAT-vpc; private /24s in 1a, 1b, 1d  # aws ec2 describe-vpcs --vpc-ids vpc-004a501b6a94f294a
+BAT_PRIVATE_SUBNETS = {
+    "ca-central-1a": "subnet-076832418027c32b5",
+    "ca-central-1b": "subnet-09c35728be6d2487f",
+    "ca-central-1d": "subnet-0df354abdd9b8fc6f",
+}
+BAT_LAMBDA_SGS = {  # ac-cct-cmp-lambdas-bat-* (read from the account 2026-10-15)
+    "message-metadata-enrich": "sg-0b0d1e756fe008bda",
+    "ai-agent": "sg-00c92f04e5ffef42b",
+    "message-processor": "sg-03de1f06a3905d2e3",
+    "start-chat": "sg-03498e5bf2e459812",
+    "idv-callback": "sg-090e7958c13fbd7e6",
+}
+BAT_MSK_BOOTSTRAP_PLAINTEXT = (
+    "b-1.accctmskbatcac1.b6n18o.c4.kafka.ca-central-1.amazonaws.com:9092,"
+    "b-2.accctmskbatcac1.b6n18o.c4.kafka.ca-central-1.amazonaws.com:9092,"
+    "b-3.accctmskbatcac1.b6n18o.c4.kafka.ca-central-1.amazonaws.com:9092"
+)
+BAT_MSK_CLUSTER_ARN = (
+    "arn:aws:kafka:ca-central-1:209479273605:cluster/ac-cct-msk-bat-cac1/"
+    "fa740b73-fa9e-43b4-bf0c-afab73587fda-4"
+)
+BAT_MSK_SECURITY_GROUP = "sg-00b5184a46495279b"
 
 DEV = EnvConfig(
     name="dev",
@@ -178,9 +243,55 @@ DEV = EnvConfig(
     admin_cidrs=[ARC_VPC_CIDR],  # the test runner (and anything else in the VPC) may use /admin
     never_ban_cidrs=[],
     ml_timeout_ms=400,  # Fargate ML latency, see the ml ServiceSize note; 150 locally
+    ban_ladder_seconds=[60, 300, 3600],  # 1 min, 5 min (retry_later), then 1 h (end_contact)
     log_retention_days=14,
     destroy_data_on_delete=True,
     tags={"project": "cmp-security-layer", "environment": "dev", "owner": "security"},
+)
+
+BAT = EnvConfig(
+    name="bat",
+    resource_prefix="cmp-security-layer",
+    cdk_qualifier="bat-cac1",  # the account's toolkit is ac-cct-bat-cac1-cdktoolkit, not the default
+    account="209479273605",
+    region="ca-central-1",
+    dns_namespace="bat.cmp-security-layer.local",
+    gateway=ServiceSize(cpu=512, memory_mib=1024, desired=1, min_tasks=1, max_tasks=3),
+    ml=ServiceSize(cpu=4096, memory_mib=8192, desired=1, min_tasks=1, max_tasks=2),
+    existing_vpc_id=BAT_VPC_ID,
+    existing_vpc_cidr=BAT_VPC_CIDR,
+    existing_private_subnet_ids=list(BAT_PRIVATE_SUBNETS.values()),
+    existing_availability_zones=list(BAT_PRIVATE_SUBNETS.keys()),
+    create_vpc_endpoints=[],
+    # Integration with BAT CMP (switched on 2026-10-15 after the standalone deploy): the BAT Lambdas
+    # may reach the internal ALB and the gateway publishes passed messages to the inbound topic the
+    # enricher names per contact. CMP side: configs/config-bat.ini (security_gateway_* keys).
+    caller_security_group_ids=list(BAT_LAMBDA_SGS.values()),
+    deploy_mock_ai=True,  # scenario suite's proxy-mode checks
+    enable_exec=True,  # test runner
+    kafka_enabled=True,
+    kafka_bootstrap_servers=BAT_MSK_BOOTSTRAP_PLAINTEXT,
+    kafka_topic="ac-cct-cmp-inbound-messages-bat",
+    kafka_topics_allowed=["ac-cct-cmp-inbound-messages-bravo-bat"],
+    kafka_security_protocol="PLAINTEXT",
+    kafka_cluster_arn=BAT_MSK_CLUSTER_ARN,
+    kafka_security_group_id=None,  # sg-00b5184a46495279b already admits 10.0.0.0/8 on 9092-9098
+    redis_node_type="cache.t4g.micro",
+    redis_multi_az=False,
+    db_instance_class="t4g.micro",
+    db_multi_az=False,
+    db_backup_days=7,
+    db_deletion_protection=False,
+    iam_role_prefix="ac-cct-",
+    iam_permissions_boundary="cfct-permission-boundary-policy",
+    alb_certificate_arn=None,
+    admin_cidrs=[BAT_VPC_CIDR],
+    never_ban_cidrs=[],
+    ml_timeout_ms=400,
+    ban_ladder_seconds=[60, 300, 3600],
+    log_retention_days=30,
+    destroy_data_on_delete=True,  # until BAT holds anything worth keeping
+    tags={"project": "cmp-security-layer", "environment": "bat", "owner": "security"},
 )
 
 SANDBOX = EnvConfig(
@@ -227,5 +338,5 @@ PROD = EnvConfig(
     tags={"project": "cmp-security-layer", "environment": "prod", "owner": "security"},
 )
 
-ENVIRONMENTS: dict[str, EnvConfig] = {c.name: c for c in (DEV, SANDBOX, PROD)}
+ENVIRONMENTS: dict[str, EnvConfig] = {c.name: c for c in (DEV, BAT, SANDBOX, PROD)}
 DEFAULT_ENV = DEV.name

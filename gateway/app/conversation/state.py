@@ -9,7 +9,13 @@ hash, never their text. They are a separate list, so they never enter the window
 accumulated risk (which measure what the *customer* sends); a blocked reply counts as a block.
 
 Privacy: turn excerpts (``CONV_TURN_CHARS``) are kept only for the window re-score and expire with
-the TTL. Blocked turns keep no text at all — only a hash and an embedding, for retry detection.
+the TTL. Blocked turns keep no text in ``turns`` — only a hash and an embedding, for retry detection.
+
+``transcript`` is the gateway's own copy of the conversation: each analysed customer turn (allowed
+or blocked) and each AI reply it checked, in order, **redacted** (card numbers, SINs, credentials
+never land here), capped at ``TRANSCRIPT_TURNS`` entries of ``TRANSCRIPT_TURN_CHARS``. A blocked AI
+reply keeps no text (it may hold a leaked secret), only its reasons. It expires with the memory and
+is deleted by ``/end``; drift and multi-turn analysis can read the whole exchange from it.
 """
 
 from __future__ import annotations
@@ -60,6 +66,16 @@ class BlockedTurn:
 
 
 @dataclass
+class TranscriptEntry:
+    n: int  # customer turn number it belongs to (an AI reply answers turn n)
+    role: str  # "customer" | "assistant"
+    text: str  # redacted; "" for a blocked AI reply
+    action: str  # allow / restrict / block for that message
+    reasons: list[str] = field(default_factory=list)
+    ts: str = ""  # ISO-8601 UTC
+
+
+@dataclass
 class AssistantTurn:
     n: int  # the customer turn it answers (state.n - 1 when it was recorded)
     hash: str
@@ -80,6 +96,7 @@ class ConversationState:
     blocks: int = 0  # blocked turns so far
     setup_turn: int | None = None  # last turn that contained a setup marker
     first_vector: list[float] | None = None  # embedding of the first scored turn (drift reference)
+    transcript: list[TranscriptEntry] = field(default_factory=list)
 
     def key(self) -> str:
         return state_key(self.session_id)
@@ -100,6 +117,7 @@ class ConversationState:
         d["assistant"] = [AssistantTurn(**a) for a in d.get("assistant", [])]
         d["turns"] = [Turn(**t) for t in d.get("turns", [])]
         d["blocked"] = [BlockedTurn(**b) for b in d.get("blocked", [])]
+        d["transcript"] = [TranscriptEntry(**e) for e in d.get("transcript", [])]
         return cls(**d)
 
 

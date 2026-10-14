@@ -17,7 +17,7 @@ Scenarios:
  3. a customer pasting a card number                 → deliver the redacted message
  4. AI replies in a verified session: own data / someone else's / card / exfiltration link / canary leak
  5. an anonymous chat: the AI may repeat what the customer typed, nothing else
- 6. an AI that keeps leaking → the session locks → handoff_to_agent
+ 6. an AI that keeps leaking → the session locks → forward_without_tools
  7. a scripted client in a tight loop                → bot tier → retry_later
  8. CMP retries a message (same message_id)          → the cached decision, no second strike
  9. proxy mode through to the mock AI app (X-Session-Id)
@@ -169,7 +169,7 @@ class Demo:
         line("AI mentions XYZ789", d, f"→ {d.get('deliver')!r}")
 
     def leaking_ai(self) -> None:
-        show("6. An AI that keeps leaking a credential (expected: send_fallback ×3, then handoff_to_agent)")
+        show("6. An AI that keeps leaking a credential (expected: send_fallback ×3, then no tools)")
         session = new_session("demo-lock")
         self.start(session)
         line("Hi, I need help with my booking", self.inspect("Hi, I need help with my booking", session))

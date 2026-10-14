@@ -61,7 +61,7 @@ def test_lock_and_admin_view_through_the_container() -> None:
         memory = view["conversation"]
         assert memory["locked"] and memory["blocks"] == 3 and memory["replies_seen"] == 3
         locked = say("Is my flight on time?")
-        assert "conversation_locked" in locked["reasons"] and locked["cmp_action"] == "handoff_to_agent"
+        assert "conversation_locked" in locked["reasons"] and locked["cmp_action"] == "forward_without_tools"
         assert c.delete(f"/admin/sessions/{conv}", headers=admin()).status_code == 200
         assert say("Is my flight on time?")["action"] == "allow"
 

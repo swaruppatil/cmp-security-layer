@@ -9,6 +9,16 @@ Deploys the stack described in [docs/deployment-aws.md](../docs/deployment-aws.m
   brokers, `ac-cct-cmp-inbound-messages-arc`, Lambda security groups) are recorded in
   `cmp_security/config.py`, sourced from `ac-cct-channel-manager-proxy/configs/config-arc.ini` and the
   account on 2026-10-14. Stacks and resources are prefixed `security-layer-dev`.
+* **`bat`**: the layer in CMP's BAT VPC (`vpc-004a501b6a94f294a`, AC-CCT-BAT `209479273605`), named
+  under the new scheme `cmp-security-layer-<component>-<env>`: stacks `cmp-security-layer-network-bat`
+  / `-data-bat` / `-compute-bat`, cluster `cmp-security-layer-bat`, services
+  `cmp-security-layer-gateway-bat` / `-ml-service-bat` / `-mock-ai-bat` / `-test-runner-bat`, ALB
+  `cmp-security-layer-gateway-bat`, RDS `cmp-security-layer-postgres-bat`, Redis
+  `cmp-security-layer-redis-bat`, secrets `cmp-security-layer/<name>-bat`, log groups
+  `/cmp-security-layer-<service>-bat`, roles `ac-cct-cmp-security-layer-<service>-task|exec-bat`,
+  namespace `bat.cmp-security-layer.local`. Values from `configs/config-bat.ini` of the CMP repo.
+  `dev` keeps its earlier `security-layer-dev-…` names until it is redeployed under the new scheme
+  (`resource_prefix` in `config.py`).
 * **`sandbox`**: the same layer in its own VPC.
 * **`prod`**: template to fill from `environment-infrastructure.md`.
 
@@ -91,6 +101,24 @@ curl -s -X POST $GATEWAY_URL/admin/api-keys -H "x-admin-key: $ADMIN" -H 'content
 
 Then follow `docs/integration-with-cmp.md` §2 (keys, protected prompt, canary) and run the scenario
 suite with `--url $GATEWAY_URL`.
+
+## Deploy `bat`
+
+Same procedure with `-c env=bat` and the AC-CCT-BAT credentials. Before the first deploy, fill in
+`config.py`: `BAT_VPC_CIDR` (`aws ec2 describe-vpcs --vpc-ids vpc-004a501b6a94f294a`), and check the
+account: CDK bootstrap (`cdk-hnb659fds-*` roles, or set `cdk_qualifier` to the account's own
+toolkit qualifier, e.g. `bat-cac1`), the `cfct-permission-boundary-policy` policy, and whether the
+MSK security group `sg-00b5184a46495279b` admits the VPC on 9092 (otherwise set
+`kafka_security_group_id`). The first deploy is standalone (no Lambda access, no Kafka); after the
+ECS Exec tests, set `BAT_LAMBDA_SGS` from the account, `caller_security_group_ids`,
+`kafka_enabled=True`, redeploy, and add the `security_gateway_*` keys to `configs/config-bat.ini`
+in the CMP repo (secret `cmp-security-layer/cmp-enricher-api-key-bat`, the BAT ALB URL).
+
+```bash
+cd infra && set -a; source <bat credentials file>; set +a
+npx aws-cdk@latest deploy -c env=bat cmp-security-layer-network-bat cmp-security-layer-data-bat --require-approval never
+npx aws-cdk@latest deploy -c env=bat cmp-security-layer-compute-bat --require-approval never
+```
 
 ## Test phase on `dev` (before wiring CMP in)
 

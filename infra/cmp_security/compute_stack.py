@@ -10,6 +10,7 @@ locally first (``ml-service/training/train.py``), then deploy.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from aws_cdk import CfnOutput, Duration, Stack, Tags
@@ -40,12 +41,11 @@ def _task_roles(scope: Construct, cfg: EnvConfig, name: str) -> dict[str, iam.Ro
     permissions on the task role exactly as it does for the roles it would generate itself.
     """
     principal = iam.ServicePrincipal("ecs-tasks.amazonaws.com")
-    base = f"{cfg.iam_role_prefix}{cfg.prefix}-{name}"
+    task_name = f"{cfg.iam_role_prefix}{cfg.rn(f'{name}-task')}"
+    exec_name = f"{cfg.iam_role_prefix}{cfg.rn(f'{name}-exec')}"
     return {
-        "task_role": iam.Role(scope, f"{name}-task-role", role_name=f"{base}-task", assumed_by=principal),
-        "execution_role": iam.Role(
-            scope, f"{name}-exec-role", role_name=f"{base}-exec", assumed_by=principal
-        ),
+        "task_role": iam.Role(scope, f"{name}-task-role", role_name=task_name, assumed_by=principal),
+        "execution_role": iam.Role(scope, f"{name}-exec-role", role_name=exec_name, assumed_by=principal),
     }
 
 
@@ -85,7 +85,7 @@ class ComputeStack(Stack):
         cluster = ecs.Cluster(
             self,
             "Cluster",
-            cluster_name=f"{cfg.prefix}-security",
+            cluster_name=cfg.cluster_name,
             vpc=network.vpc,
             container_insights_v2=ecs.ContainerInsights.ENABLED,
         )
@@ -143,14 +143,14 @@ class ComputeStack(Stack):
             logging=ecs.LogDrivers.aws_logs(
                 stream_prefix="ml",
                 log_group=logs.LogGroup(
-                    self, "MlLogs", log_group_name=f"/{cfg.prefix}/ml-service", retention=retention
+                    self, "MlLogs", log_group_name=cfg.log_group("ml-service"), retention=retention
                 ),
             ),
         )
         self.ml_service = ecs.FargateService(
             self,
             "MlService",
-            service_name=f"{cfg.prefix}-ml-service",
+            service_name=cfg.rn("ml-service"),
             cluster=cluster,
             task_definition=ml_task,
             desired_count=cfg.ml.desired,
@@ -197,14 +197,14 @@ class ComputeStack(Stack):
                 logging=ecs.LogDrivers.aws_logs(
                     stream_prefix="mock",
                     log_group=logs.LogGroup(
-                        self, "MockLogs", log_group_name=f"/{cfg.prefix}/mock-ai", retention=retention
+                        self, "MockLogs", log_group_name=cfg.log_group("mock-ai"), retention=retention
                     ),
                 ),
             )
             ecs.FargateService(
                 self,
                 "MockAiService",
-                service_name=f"{cfg.prefix}-mock-ai",
+                service_name=cfg.rn("mock-ai"),
                 cluster=cluster,
                 task_definition=mock_task,
                 desired_count=1,
@@ -259,6 +259,7 @@ class ComputeStack(Stack):
                 "UPSTREAM_AI_URL": upstream_url,
                 **kafka_env,
                 "TRUSTED_PROXY_COUNT": "1",
+                "BAN_LADDER_SECONDS": json.dumps(cfg.ban_ladder_seconds),
                 "NEVER_BAN_CIDRS": never_ban,
                 "AUDIT_WORKER_ENABLED": "true",
                 "LOG_LEVEL": "info",
@@ -278,14 +279,14 @@ class ComputeStack(Stack):
             logging=ecs.LogDrivers.aws_logs(
                 stream_prefix="gw",
                 log_group=logs.LogGroup(
-                    self, "GatewayLogs", log_group_name=f"/{cfg.prefix}/gateway", retention=retention
+                    self, "GatewayLogs", log_group_name=cfg.log_group("gateway"), retention=retention
                 ),
             ),
         )
         self.gateway_service = ecs.FargateService(
             self,
             "GatewayService",
-            service_name=f"{cfg.prefix}-gateway",
+            service_name=cfg.rn("gateway"),
             cluster=cluster,
             task_definition=gw_task,
             desired_count=cfg.gateway.desired,
@@ -342,7 +343,7 @@ class ComputeStack(Stack):
         self.alb = elbv2.ApplicationLoadBalancer(
             self,
             "Alb",
-            load_balancer_name=f"{cfg.prefix}-gateway",
+            load_balancer_name=cfg.rn("gateway"),
             vpc=network.vpc,
             internet_facing=False,
             security_group=network.sg_alb,
@@ -453,14 +454,14 @@ class ComputeStack(Stack):
                 logging=ecs.LogDrivers.aws_logs(
                     stream_prefix="runner",
                     log_group=logs.LogGroup(
-                        self, "RunnerLogs", log_group_name=f"/{cfg.prefix}/test-runner", retention=retention
+                        self, "RunnerLogs", log_group_name=cfg.log_group("test-runner"), retention=retention
                     ),
                 ),
             )
             ecs.FargateService(
                 self,
                 "TestRunnerService",
-                service_name=f"{cfg.prefix}-test-runner",
+                service_name=cfg.rn("test-runner"),
                 cluster=cluster,
                 task_definition=runner_task,
                 desired_count=1,

@@ -193,10 +193,7 @@ async def inspect(
     decision.redactions = ctx.redactions
     if ctx.redacted_fields is not None:
         decision.redacted_message = ctx.redacted_fields[0]
-    prior_blocks = ctx.conversation.blocks if ctx.conversation is not None else 0
-    decision.cmp_action = inbound_action(
-        decision, prior_blocks, settings.cmp_handoff_after_blocks, settings.cmp_short_ban_seconds
-    )
+    decision.cmp_action = inbound_action(decision, settings.cmp_short_ban_seconds)
     decision.session_state = ctx.session_state
     await _publish(request.app.state, body, ctx, decision)
     await _remember_session(sessions, ctx, decision, rec, loaded)

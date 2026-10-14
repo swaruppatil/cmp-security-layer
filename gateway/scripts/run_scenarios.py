@@ -37,11 +37,13 @@ import argparse
 import base64
 import codecs
 import ipaddress
+import itertools
 import json
 import os
 import random
 import re
 import sys
+import threading
 import time
 import uuid
 from collections import Counter, defaultdict
@@ -60,6 +62,8 @@ DEFAULT_FILE = DATA / "sessions" / "scenarios.yaml"
 CARD = "4111 1111 1111 1111"  # the standard Visa test number
 AWS_KEY = "AKIAIOSFODNN7EXAMPLE"  # AWS's documented example access key
 IP_RNG = random.Random()  # noqa: S311 - test traffic, not cryptography
+_BLOCK_COUNTER = itertools.count()
+_BLOCK_LOCK = threading.Lock()
 SAFE = re.compile(r"[^A-Za-z0-9._:@-]")
 
 # ------------------------------------------------------------------ text: datasets and transforms
@@ -510,9 +514,11 @@ class Player:
                     f"127.{IP_RNG.randint(1, 254)}.{IP_RNG.randint(1, 254)}.{IP_RNG.randint(1, 254)}"
                 )
             else:
-                self.ips[label] = (
-                    f"198.{IP_RNG.randint(18, 19)}.{IP_RNG.randint(0, 255)}.{IP_RNG.randint(1, 254)}"
-                )
+                # One /24 per (scenario, label), never shared: a scenario that bans "@ip/24" must not
+                # catch another scenario's addresses, and "inside" / "outside" must differ.
+                with _BLOCK_LOCK:
+                    block = next(_BLOCK_COUNTER) % 512
+                self.ips[label] = f"198.{18 + block // 256}.{block % 256}.{IP_RNG.randint(1, 254)}"
         return self.ips[label]
 
     def ref(self, value: Any) -> Any:

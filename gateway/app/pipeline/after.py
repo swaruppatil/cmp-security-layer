@@ -11,7 +11,10 @@ logged and swallowed: bookkeeping must never break request handling.
 |                                            | — a lone probabilistic verdict from a check named in    |
 |                                            |   SINGLE_SIGNAL_NO_STRIKE (ml, rules) is a block, not a  |
 |                                            |   strike: one model opinion never starts the ban ladder |
-| AI reply blocked, probabilistic evidence   | the session only (its lock escalates), not the customer |
+| AI reply blocked, probabilistic evidence   | the session only: its lock escalates, no ban (the AI's   |
+|                                            |   fault, not the person's)                              |
+| customer message blocked with strike       | session, customer, device: strikes and the ban ladder   |
+|                                            |   (1 min, 5 min, …; BAN_LADDER_SECONDS)                 |
 | blocked for another reason (e.g. too long) | reputation +2                                           |
 | blocked because already banned             | nothing (no double counting)                            |
 | allowed                                    | the customer / device counts as a "good user" of the IP |
@@ -113,10 +116,18 @@ class AfterDecision:
             )
             striking = []
         session = next((e for e in personal if e.type == "session"), None)
-        if striking and ctx.direction == "outbound" and evidence == "probabilistic" and session is not None:
+        reply_only = (
+            bool(striking)
+            and ctx.direction == "outbound"
+            and evidence == "probabilistic"
+            and session is not None
+        )
+        targets: list[Entity]
+        if reply_only and session is not None:
             # A blocked AI reply (a secret, someone else's data) is evidence about the conversation, not
-            # proof about the person: the session takes the strike and its lock escalates. A canary leak
-            # (deterministic: only an extracted system prompt contains it) still strikes the customer.
+            # proof about the person: the session takes the strike and its lock escalates, nobody is
+            # banned. A canary leak (deterministic: only an extracted system prompt contains it) still
+            # strikes the customer.
             targets = [session]
         else:
             targets = await self._charged(
@@ -139,7 +150,7 @@ class AfterDecision:
         reason = striking[0].reason or striking[0].name
         for e in targets:
             await self._rep.record(e, "attack")
-            await self._strike(e, reason, evidence, decision.request_id)
+            await self._strike(e, reason, evidence, decision.request_id, ladder=not reply_only)
 
     async def _charged(
         self, personal: list[Entity], ip_entity: Entity | None, *, attack: bool, request_id: str
@@ -161,11 +172,14 @@ class AfterDecision:
             return personal
         return [*personal, ip_entity]
 
-    async def _strike(self, entity: Entity, reason: str, evidence: Evidence, request_id: str) -> None:
+    async def _strike(
+        self, entity: Entity, reason: str, evidence: Evidence, request_id: str, *, ladder: bool = True
+    ) -> None:
+        """Record a strike and, unless ``ladder`` is off, ban the entity for the ladder step its strike
+        count reached: the customer's own attacks block them progressively (BAN_LADDER_SECONDS), while
+        a chat whose AI replies leaked is only locked."""
         strikes = await self._rep.add_strike(entity, evidence, request_id)
-        if entity.type == "session" and evidence == "probabilistic":
-            # A model's verdict alone does not ban a chat: within a session the conversation lock
-            # (CONV_MAX_BLOCKS) escalates repeated blocks. The strike still counts and is recorded.
+        if not ladder:
             await self._bans.record_strike(entity, reason=reason, evidence=evidence, request_id=request_id)
             return
         ban = await self._bans.escalate(

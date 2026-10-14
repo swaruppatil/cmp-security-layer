@@ -301,3 +301,43 @@ async def test_canary_leak_still_strikes_the_customer():
     await after(out, decision(Action.BLOCK, canary, reasons=["canary_leak"]))
     assert {s["entity_type"] for s in repo.strikes} == {"user", "session"}
     assert bans.match(Subject(user_id="u1")) is not None
+
+
+async def test_an_anonymous_chats_attacks_are_banned_progressively():
+    """Rules + ML agree on an attack (probabilistic, two signals): the session climbs the ladder."""
+    after, rep, bans, repo = setup(ban_ladder_seconds=[60, 300, 3600])
+    rules = CheckResult(
+        name="rules",
+        passed=False,
+        action=Action.BLOCK,
+        reason="instruction_override",
+        strike=True,
+        evidence="probabilistic",
+    )
+    ml = CheckResult(
+        name="ml",
+        passed=False,
+        action=Action.BLOCK,
+        reason="ml_injection",
+        strike=True,
+        evidence="probabilistic",
+    )
+    anon = ctx(session_id="contact-9", user_id=None)
+    await after(anon, decision(Action.BLOCK, rules, ml, reasons=["instruction_override", "ml_injection"]))
+    first = bans.match(Subject(session_id="contact-9"))
+    assert first is not None and not first.permanent
+    assert (await rep.snapshot(Entity("session", "contact-9")))["strikes"]["total"] == 1
+    await after(anon, decision(Action.BLOCK, rules, ml, reasons=["instruction_override", "ml_injection"]))
+    second = bans.match(Subject(session_id="contact-9"))
+    assert second is not None and second.expires_at > first.expires_at  # 5 minutes now, not 1
+    assert (
+        len(
+            [
+                b
+                for b in repo.bans.values()
+                if b.get("session_id") == "contact-9" or b.get("value") == "contact-9"
+            ]
+        )
+        >= 1
+    )
+    assert bans.match(Subject(ip="203.0.113.9")) is None  # the address is not charged for one chat

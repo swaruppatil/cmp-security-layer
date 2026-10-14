@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from datetime import UTC, datetime
 from typing import Any
 
 from redis.exceptions import WatchError
@@ -28,6 +29,7 @@ from app.conversation.state import (
     AssistantTurn,
     BlockedTurn,
     ConversationState,
+    TranscriptEntry,
     Turn,
     ended_key,
     state_key,
@@ -89,7 +91,10 @@ class ConversationService:
                     chars=len(ctx.text or ""),
                     reasons=decision.reasons[:5],
                 )
-                await self._mutate(ctx.session_id, lambda st: self._add_reply(st, reply))
+                # A blocked reply may contain the very secret that got it blocked: no text kept.
+                reply_text = "" if decision.action == Action.BLOCK else ctx.safe_text
+                entry = self._entry(0, "assistant", reply_text, decision)
+                await self._mutate(ctx.session_id, lambda st: self._add_reply(st, reply, entry))
             return
         state = ctx.conversation
         if state is None or decision.action == Action.THROTTLE or NOT_ANALYSED & set(decision.reasons):
@@ -120,19 +125,44 @@ class ConversationService:
             attack_lean=lean,
             rule_ids=rule_ids,
         )
-        await self._mutate(state.session_id, lambda st: self._add_turn(st, turn, blocked))
+        entry = self._entry(0, "customer", ctx.safe_text, decision)
+        await self._mutate(state.session_id, lambda st: self._add_turn(st, turn, blocked, entry))
 
-    def _add_reply(self, state: ConversationState, reply: AssistantTurn) -> None:
+    def _entry(self, n: int, role: str, text: str, decision: Decision) -> TranscriptEntry | None:
+        if self._s.transcript_turns <= 0:
+            return None
+        return TranscriptEntry(
+            n=n,
+            role=role,
+            text=text[: self._s.transcript_turn_chars],
+            action=decision.action.value,
+            reasons=decision.reasons[:5],
+            ts=datetime.now(UTC).isoformat(timespec="seconds"),
+        )
+
+    def _append(self, state: ConversationState, entry: TranscriptEntry | None, n: int) -> None:
+        if entry is None:
+            return
+        entry.n = n
+        state.transcript = [*state.transcript, entry][-self._s.transcript_turns :]
+
+    def _add_reply(
+        self, state: ConversationState, reply: AssistantTurn, entry: TranscriptEntry | None = None
+    ) -> None:
         reply.n = max(state.n - 1, 0)
         state.assistant = [*state.assistant, reply][-self._s.conversation_window :]
         state.replies += 1
         if reply.action == Action.BLOCK.value:
             state.blocks += 1
+        self._append(state, entry, reply.n)
 
-    def _add_turn(self, state: ConversationState, turn: Turn, blocked: bool) -> None:
+    def _add_turn(
+        self, state: ConversationState, turn: Turn, blocked: bool, entry: TranscriptEntry | None = None
+    ) -> None:
         # Recomputed on the latest state, so turns recorded out of order still accumulate.
         state.acc, _ = next_acc(state, turn.score, turn.attack_lean, self._s)
         turn.n = state.n
+        self._append(state, entry, turn.n)
         state.turns = [*state.turns, turn][-self._s.conversation_window :]
         if blocked:
             state.blocks += 1

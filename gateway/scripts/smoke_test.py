@@ -413,8 +413,8 @@ def main() -> int:  # noqa: PLR0915 - one linear walkthrough
     )
     d = inspect("Is my flight on time today?", conv)
     step(
-        "next customer message → conversation_locked → handoff_to_agent",
-        "conversation_locked" in d["reasons"] and d["cmp_action"] == "handoff_to_agent",
+        "next customer message → conversation_locked → forward_without_tools",
+        "conversation_locked" in d["reasons"] and d["cmp_action"] == "forward_without_tools",
         f"{d['action']} {d['reasons']}",
     )
     c.delete(view, headers=admin)

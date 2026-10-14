@@ -75,15 +75,17 @@ def test_a_verified_customers_own_bookings_never_count():
             assert d["action"] == "allow", d["reasons"]
 
 
-def test_eight_references_in_one_chat_are_blocked_without_banning_the_chat():
+def test_eight_references_in_one_chat_are_blocked_and_the_chat_is_banned_briefly():
     c, auth, repo = client()
     with c:
         results = [say(c, auth, "guess-2", f"Status of booking {ref}?") for ref in REFS[:8]]
-    assert [r["action"] for r in results[3:7]] == ["restrict"] * 4
-    last = results[7]
-    assert last["action"] == "block" and last["reasons"] == ["identifier_enumeration"]
-    # a probabilistic strike on the session: recorded, never a ban of the chat
-    assert {s["entity_type"] for s in repo.strikes} == {"session"} and repo.bans == {}
+        assert [r["action"] for r in results[3:7]] == ["restrict"] * 4
+        last = results[7]
+        assert last["action"] == "block" and last["reasons"] == ["identifier_enumeration"]
+        # a strike on the session: the chat takes the ladder's first step (1 minute), nobody else
+        assert say(c, auth, "guess-2", "Is my flight on time?")["reasons"] == ["banned"]
+    assert {s["entity_type"] for s in repo.strikes} == {"session"}
+    assert {b["entity_type"] for b in repo.bans.values()} == {"session"}
 
 
 def test_one_ip_trying_references_across_many_chats_is_restricted():

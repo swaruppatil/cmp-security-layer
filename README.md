@@ -174,9 +174,8 @@ Explained in [GUIDE.md §14](GUIDE.md#14-how-it-connects-to-cmp).
 | `forward_without_tools` | restrict |
 | `retry_later` | throttle, or a ban that ends within `CMP_SHORT_BAN_SECONDS` (900 s) |
 | `refuse` | block |
-| `handoff_to_agent` | the session is locked, or this is its `CMP_HANDOFF_AFTER_BLOCKS`-th (2nd) block |
 | `end_contact` | banned for longer than 900 s, or permanently |
-| `send_fallback` | AI reply blocked (`deliver` is `null`) |
+| `send_fallback` | AI reply blocked (`deliver` is `null`), or it promises money / approvals the AI cannot make |
 
 - With a `message_id`, a repeat within `IDEMPOTENCY_TTL_SECONDS` (10 min) returns the first decision
   (`replayed: true`) without re-running the checks or striking again.

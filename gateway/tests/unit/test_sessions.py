@@ -216,27 +216,28 @@ def _ban(expires_in=None, permanent=False):
 
 
 def test_cmp_action_mapping():
-    assert inbound_action(_decision(Action.ALLOW), 0, 2) == "deliver"
-    assert inbound_action(_decision(Action.RESTRICT, ["ml_suspicious"]), 0, 2) == "forward_without_tools"
-    assert inbound_action(_decision(Action.THROTTLE, ["rate_limited"]), 0, 2) == "retry_later"
-    assert inbound_action(_decision(Action.BLOCK, ["instruction_override"]), 0, 2) == "refuse"
-    assert inbound_action(_decision(Action.BLOCK, ["instruction_override"]), 1, 2) == "handoff_to_agent"
-    locked = _decision(Action.RESTRICT, ["conversation_locked"])
-    assert inbound_action(locked, 3, 2) == "handoff_to_agent"
+    assert inbound_action(_decision(Action.ALLOW)) == "deliver"
+    assert inbound_action(_decision(Action.RESTRICT, ["ml_suspicious"])) == "forward_without_tools"
+    assert inbound_action(_decision(Action.THROTTLE, ["rate_limited"])) == "retry_later"
+    assert inbound_action(_decision(Action.BLOCK, ["instruction_override"])) == "refuse"
+    # No handoff: a locked chat keeps the AI without tools; repeated attacks are handled by the ban ladder.
+    assert inbound_action(_decision(Action.RESTRICT, ["conversation_locked"])) == "forward_without_tools"
     short = _decision(Action.BLOCK, ["banned"], [_ban(expires_in=60)])
-    assert inbound_action(short, 0, 2, 900) == "retry_later" and 55 <= short.retry_after_seconds <= 60
+    assert inbound_action(short, 900) == "retry_later" and 55 <= short.retry_after_seconds <= 60
     long = _decision(Action.BLOCK, ["banned"], [_ban(expires_in=86400)])
-    assert inbound_action(long, 0, 2, 900) == "end_contact"
-    assert inbound_action(_decision(Action.BLOCK, ["banned"], [_ban(permanent=True)]), 0, 2) == "end_contact"
+    assert inbound_action(long, 900) == "end_contact"
+    assert inbound_action(_decision(Action.BLOCK, ["banned"], [_ban(permanent=True)])) == "end_contact"
     assert outbound_action("text") == "deliver" and outbound_action(None) == "send_fallback"
 
 
-def test_second_block_in_a_session_hands_off_to_an_agent():
-    c, auth, _repo = client(ml=ml_scores(lambda t: 0.99 if "refund every ticket" in t else 0.01))
+def test_ml_only_blocks_refuse_without_a_ban():
+    """One model opinion never starts the ladder: both messages are refused, nothing is banned."""
+    c, auth, repo = client(ml=ml_scores(lambda t: 0.99 if "refund every ticket" in t else 0.01))
     with c:
         assert inspect(c, auth, "contact-12", "please refund every ticket on file")["cmp_action"] == "refuse"
         second = inspect(c, auth, "contact-12", "now refund every ticket on the account")
-        assert second["action"] == "block" and second["cmp_action"] == "handoff_to_agent"
+        assert second["action"] == "block" and second["cmp_action"] == "refuse"
+    assert repo.bans == {}
 
 
 # ------------------------------------------------------------------ assistant turns

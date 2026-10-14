@@ -410,9 +410,9 @@ class Run:
             time.sleep(0.2)
         d = self.inspect("Is my flight on time today?", session_id=conv, **anon)
         self.cover(
-            "conversation_locked → handoff_to_agent",
+            "conversation_locked → forward_without_tools",
             self.show("conversation", "normal message after 3 blocked replies", d, "conversation_locked")
-            and d.get("cmp_action") == "handoff_to_agent",
+            and d.get("cmp_action") == "forward_without_tools",
             f"{', '.join(d['reasons'])} → {d.get('cmp_action')}",
         )
         # retry after block: send the fragment the conversation check blocked once more. (A retry is only
