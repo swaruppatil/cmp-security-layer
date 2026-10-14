@@ -202,7 +202,8 @@ def test_retry_after_block_and_lock_then_admin_reset():
         assert locked["action"] == "restrict" and "conversation_locked" in locked["reasons"]
         assert locked["cmp_action"] == "handoff_to_agent"
         # ML (probabilistic) strikes are recorded against the session, but never ban it.
-        assert {s["entity_type"] for s in repo.strikes} == {"session"} and repo.bans == {}
+        # Blocks by the ML tier alone refuse the message and lock the chat, but strike and ban nobody.
+        assert repo.strikes == [] and repo.bans == {}
 
         view = c.get("/admin/sessions/conv-1", headers=ADMIN).json()["conversation"]
         assert view["locked"] and view["blocks"] == 3 and len(view["blocked_turns"]) == 3

@@ -144,6 +144,8 @@ async def inspect(
         message_id=body.message_id,
         session_state=rec.state if rec else ANONYMOUS,
         mode="inspect",
+        own_identifiers={t: set(h) for t, h in rec.verified_ids.items()} if rec else {},
+        session_store_ok=loaded,
     )
     decision = await decide(request.app.state, request.app.state.pipeline, ctx)
     decision.redactions = ctx.redactions
@@ -178,7 +180,7 @@ async def inspect_outbound(
     if cached is not None:
         return OutboundDecision(**{**cached, "replayed": True})
 
-    rec, _loaded = await _session(sessions, body.session_id)
+    rec, loaded = await _session(sessions, body.session_id)
     ctx = RequestContext(
         request_id=request_id(request),
         principal=principal,
@@ -201,13 +203,14 @@ async def inspect_outbound(
             else None
         ),
         allowed_identifier_hashes=rec.allowed_hashes() if rec is not None else None,
+        session_store_ok=loaded,
     )
     ctx.deliver = body.reply
     base = await decide(request.app.state, request.app.state.outbound_pipeline, ctx)
     deliver = None if base.action == Action.BLOCK else ctx.deliver
     decision = OutboundDecision(**base.model_dump(), deliver=deliver)
     decision.redactions = ctx.redactions
-    decision.cmp_action = outbound_action(deliver)
+    decision.cmp_action = outbound_action(deliver, base)
     decision.session_state = ctx.session_state
     await _remember_decision(sessions, ctx, decision)
     background.add_task(request.app.state.after_decision, ctx, decision)

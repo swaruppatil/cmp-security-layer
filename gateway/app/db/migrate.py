@@ -66,8 +66,14 @@ async def enable_dashboard_role(dsn: str, password: str) -> None:
     (``DASHBOARD_DB_PASSWORD``) and never sits in a file. Re-running just sets the same password."""
     conn = await asyncpg.connect(dsn)
     try:
-        literal = await conn.fetchval("SELECT quote_literal($1::text)", password)
-        await conn.execute(f"ALTER ROLE dashboard_reader WITH LOGIN PASSWORD {literal}")
+        # Several gateway instances starting at once would race on the role row ("tuple concurrently
+        # updated"); the migration lock serialises them.
+        await conn.execute("SELECT pg_advisory_lock($1)", LOCK_ID)
+        try:
+            literal = await conn.fetchval("SELECT quote_literal($1::text)", password)
+            await conn.execute(f"ALTER ROLE dashboard_reader WITH LOGIN PASSWORD {literal}")
+        finally:
+            await conn.execute("SELECT pg_advisory_unlock($1)", LOCK_ID)
     finally:
         await conn.close()
 

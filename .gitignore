@@ -13,3 +13,6 @@ ml-service/.cache/
 datasets/public/raw/
 gateway/.try_key
 docs/
+datasets/external/raw/
+datasets/external/data/
+datasets/external/reports/*.json

@@ -26,7 +26,22 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
 CATEGORIES = ("pii", "payment", "secret", "identifier")
-CONTEXT_WINDOW = 40  # characters before a match searched for a context word
+CONTEXT_WINDOW = 40  # characters on either side of a match searched for a context word
+
+# Six-letter words that look like booking references when a customer types in capitals
+# ("I NEED A REFUND ON MY BOOKING, PLEASE CANCEL THE TICKET"). Only all-letter candidates are checked.
+COMMON_SIX = frozenset(
+    """please cancel ticket return refund number flight change search online status before
+    thanks booked seated option charge credit cannot should second window middle direct
+    flying travel friday sunday monday august within policy wallet points update mobile
+    delete person people family mother father client coupon letter answer system prompt
+    rebook resend reduce review notice choose select bought tocket urgent though toward
+    canada london boston denver dallas ottawa europe mexico havana munich zurich dublin
+    merci billet retour numero vol siege dossier avoir enfant client demain lundi mardi jeudi
+    samedi besoin chaque encore depuis depart arrive bagage classe simple double""".split()
+)
+# At most this share of a message may be upper case before an all-letter token needs a digit to count.
+SHOUTING_SHARE = 0.6
 
 
 @dataclass(frozen=True)
@@ -85,8 +100,9 @@ class Pattern:
     category: str
     regex: re.Pattern[str]
     validate: Callable[[str], bool] | None = None
-    context: re.Pattern[str] | None = None  # required nearby word (before the match)
+    context: re.Pattern[str] | None = None  # required nearby word (before or after the match)
     group: int = 0  # which regex group is the sensitive value
+    flags: int = 0  # re flags the pattern was compiled with (informational)
 
 
 def ctx(*words: str) -> re.Pattern[str]:
@@ -144,8 +160,10 @@ PATTERNS: list[Pattern] = [
         "password_assignment",
         "secret",
         re.compile(
-            r"(?i:\b(?:password|passwd|pwd|passcode|mot de passe|secret|api[_\-\s]?key|access[_\-\s]?token|auth[_\-\s]?token)"
-            r"\s*(?:is|est|=|:)\s*)[\"']?([^\s\"']{6,})"
+            r"(?i:\b(?:password|passwd|pwd|passcode|mot de passe|secret[_\-\s](?:key|token|code)|client[_\-\s]secret|api[_\-\s]?key|access[_\-\s]?token|auth[_\-\s]?token)"
+            r"\s*(?:is|est|=|:)\s*)(?!(?:wrong|incorrect|invalid|expired|rejected|working|correct|missing|"
+            r"blocked|locked|unknown|forgotten|required|needed|different|changed|reset|again|still|also|"
+            r"always|never|probably|definitely|incorrecte?|invalide|oublie|expire)\b)[\"']?([^\s\"']{6,})"
         ),
         group=1,
     ),
@@ -203,11 +221,14 @@ PATTERNS: list[Pattern] = [
         re.compile(r"(?<!\d)\d{3}[ \-]?\d{3}[ \-]?\d{3}(?!\d)"),
         context=ctx(r"aeroplan", r"member(?:ship)? (?:number|no|#)", r"num[ée]ro de membre"),
     ),
+    # Case-insensitive: customers type "abc123"; the AI replies "ABC123"; both must compare equal.
     Pattern(
         "booking_ref",
         "identifier",
-        re.compile(r"\b(?=[A-Z0-9]{6}\b)(?=[A-Z0-9]*[A-Z])[A-Z0-9]{6}\b"),
-        validate=lambda v: not re.fullmatch(r"AC\d{1,4}", v),
+        re.compile(
+            r"(?<![A-Za-z0-9])(?=[A-Za-z0-9]{6}(?![A-Za-z0-9]))(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]{6}(?![A-Za-z0-9])"
+        ),
+        validate=lambda v: not re.fullmatch(r"AC\d{1,4}", v, re.I) and v.lower() not in COMMON_SIX,
         context=BOOKING_CTX,
     ),
 ]
@@ -234,6 +255,8 @@ def find(text: str, field: int = 0, types: Iterable[str] | None = None) -> list[
     wanted = set(types) if types is not None else None
     taken: list[tuple[int, int]] = []
     out: list[SensitiveFinding] = []
+    letters = [c for c in text if c.isalpha()]
+    shouting = bool(letters) and sum(c.isupper() for c in letters) / len(letters) >= SHOUTING_SHARE
     for p in PATTERNS:
         if wanted is not None and p.type not in wanted:
             continue
@@ -242,8 +265,11 @@ def find(text: str, field: int = 0, types: Iterable[str] | None = None) -> list[
             value = m.group(p.group)
             if p.validate is not None and not p.validate(value):
                 continue
-            if p.context is not None and not p.context.search(
-                text[max(0, m.start() - CONTEXT_WINDOW) : m.start()]
+            if p.type == "booking_ref" and shouting and value.isalpha():
+                continue  # "PLEASE CANCEL THE TICKET": capitals, not references
+            if p.context is not None and not (
+                p.context.search(text[max(0, m.start() - CONTEXT_WINDOW) : m.start()])
+                or p.context.search(text[m.end() : m.end() + CONTEXT_WINDOW])
             ):
                 continue
             if any(start < e and s < end for s, e in taken):

@@ -37,6 +37,8 @@ def test_the_scenario_file_is_valid():
         "proxy",
         "api",
         "channel",
+        "enumeration",
+        "failure-policy",
     } <= tags
 
 

@@ -16,7 +16,7 @@ from app.ensemble import top_k_similarity
 from app.main import create_app
 from app.model import load_current
 from app.preprocess import preprocess
-from training.train import calibrate, load_heldout, load_rows, train
+from training.train import calibrate, load_heldout, load_training, train
 
 DATA = Path(__file__).resolve().parents[2] / "datasets"
 CACHE = Path(__file__).resolve().parents[1] / ".cache"
@@ -49,8 +49,19 @@ def test_model_info_has_thresholds_and_evaluation(client):
     assert 0.5 <= t["restrict"] < t["block"] <= 0.98
     oof = info["metrics"]["out_of_fold"]
     assert oof["recall_flagged"] >= 0.9 and oof["fpr_flagged"] <= 0.05
-    assert set(oof["stacker_weights"]) == {"ngram", "embedding", "attack_similarity", "benign_similarity"}
+    assert {
+        "ngram×latin",
+        "embedding",
+        "attack_similarity",
+        "benign_similarity",
+        "latin_share",
+        "second_person",
+        "first_person",
+        "length",
+    } == set(oof["stacker_weights"])
+    assert "off_topic" in t and 0 <= t["off_topic"] <= 1  # airline exemplars → off-topic threshold
     assert "public-deepset" in info["metrics"]["heldout"] and "handwritten" in info["metrics"]["heldout"]
+    assert info["model"] == "chat"
     assert info["data"]["attacks"] > 0 and info["data"]["benign"] > 0
 
 
@@ -67,6 +78,9 @@ def test_score_separates_obvious_attack_from_normal_question(client):
     assert res.status_code == 200
     body = res.json()
     attack, normal = body["results"]
+    assert body["model"] == "chat"  # no tool model in the test image: "tool" requests fall back too
+    assert client.post("/v1/score", json={"texts": ["hi there"], "model": "tool"}).json()["model"] == "chat"
+    assert client.get("/health").json()["tool_model_version"] is None
     assert attack["score"] > body["thresholds"]["block"]
     assert normal["score"] < body["thresholds"]["restrict"]
     assert set(attack["components"]) == {
@@ -75,7 +89,13 @@ def test_score_separates_obvious_attack_from_normal_question(client):
         "attack_similarity",
         "benign_similarity",
         "nearest_attack_family",
+        "topic_similarity",
+        "transformer",  # None: the test model is trained without the pretrained view
     }
+    assert attack["components"]["transformer"] is None
+    # The off-topic signal: an airline question is on topic, homework is not.
+    off = client.post("/v1/score", json={"texts": ["Explain photosynthesis for my biology homework"]}).json()
+    assert off["results"][0]["components"]["topic_similarity"] < normal["components"]["topic_similarity"]
     assert attack["components"]["nearest_attack_family"]
     assert body["latency_ms"] >= 0
 
@@ -149,11 +169,11 @@ def test_calibrate_respects_budget_floors_and_ordering():
 
 
 def test_heldout_files_are_never_training_data():
-    train_texts = {r["text"] for r in load_rows(DATA)}
-    heldout = load_heldout(DATA)
+    train_texts = {r["text"].casefold() for r in load_training([DATA, DATA / "tool"])}
+    heldout = load_heldout([DATA, DATA / "tool"])
     assert {"public-deepset", "handwritten"} <= set(heldout)
     for rows in heldout.values():
-        assert not train_texts & {r["text"] for r in rows}
+        assert not train_texts & {r["text"].casefold() for r in rows}
 
 
 def test_load_current_reads_pointer(model_dir):

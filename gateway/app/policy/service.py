@@ -11,7 +11,7 @@ A policy (``policies`` table, every version kept in ``policy_versions``):
 | mode             | ``enforce`` — or ``monitor``: decide and record, but tell the caller "allow" (safe rollout) |
 | actions          | overrides of the final action, e.g. ``{"restrict": "block"}`` on a sensitive endpoint, ``{"block": "restrict"}`` while tuning |
 | thresholds       | ``ml_block_at`` / ``ml_restrict_at``: replace the model's calibrated thresholds |
-| sensitive        | marks endpoints that act on data (bookings, refunds); informational for now   |
+| sensitive        | marks endpoints that act on data (bookings, refunds): when a Redis-backed check or the session store is down, they are restricted (``DEGRADED_SENSITIVE_ACTION``) |
 
 Resolution (most specific wins): a policy naming the channel beats one that doesn't, then one naming
 the session state, then an exact endpoint over a pattern, then the longer pattern; the global default
@@ -20,7 +20,8 @@ actions: {"restrict": "block"}}`` is stricter for unverified SMS chats only. Pol
 reloaded every ``POLICY_CACHE_TTL_SECONDS`` and whenever any instance changes one (Redis pub/sub
 ``policies:changed``).
 
-Safety rules hold whatever a policy says: a ban, a throttle and a canary leak are never overridden,
+Safety rules hold whatever a policy says: a ban, a throttle, a canary leak and a sensitive request
+refused while state is unavailable are never overridden,
 and monitor mode never strikes or bans anyone (the action the after-decision step sees is "allow").
 """
 
@@ -38,7 +39,7 @@ log = logging.getLogger("gateway.policy")
 CHANNEL = "policies:changed"
 OVERRIDABLE = frozenset({Action.ALLOW, Action.RESTRICT, Action.BLOCK, Action.INSPECT})
 NEVER_OVERRIDE_REASONS = frozenset(
-    {"banned", "canary_leak", "bot_detected", "rate_limited", "rate_limit_unavailable"}
+    {"banned", "canary_leak", "bot_detected", "rate_limited", "rate_limit_unavailable", "state_unavailable"}
 )
 
 

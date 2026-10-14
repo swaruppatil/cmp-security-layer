@@ -40,6 +40,9 @@ class CheckResult(BaseModel):
     strike: bool = False
     # How certain the evidence is. Permanent bans require deterministic evidence.
     evidence: Literal["deterministic", "probabilistic"] | None = None
+    # True when a later check may confirm or soften this result (a phrase rule waiting for the ML
+    # tier's opinion): the pipeline carries on past it instead of stopping.
+    provisional: bool = False
 
 
 class Decision(BaseModel):

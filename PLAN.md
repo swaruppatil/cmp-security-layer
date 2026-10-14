@@ -579,7 +579,7 @@ nothing is a placeholder.
     `eval_multiturn.py` (tracked = one session per conversation, baseline = a new session per turn).
     Local `.env`: `NEVER_BAN_CIDRS` includes Docker Desktop's host range `192.168.65.0/24`, from which
     all local test traffic reaches the container.
-  - **Tests** — 349 unit (new `tests/unit/test_sessions.py`, 18 tests; `test_scenarios_file.py`, 4; `test_dashboard.py`, 2) + 31 integration (isolated by
+  - **Tests** — 364 unit (new `tests/unit/test_sessions.py`, 18 tests; `test_scenarios_file.py`, 4; `test_dashboard.py`, 2; `test_enumeration_and_failure_policy.py`, 15) + 31 integration (isolated by
     caller key and unique session ids; `test_tenants_are_gone_from_the_schema`).
 - **Known limitations:** two copies of one `message_id` arriving at the same instant can both run;
   gradual multi-turn attacks whose turns all look innocent are caught only if the accumulated total

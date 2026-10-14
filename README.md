@@ -29,7 +29,8 @@ All services are **Python 3.11 + FastAPI**, managed with [`uv`](https://docs.ast
 
 ```
 gateway/      FastAPI — the request pipeline, auth, proxy, inspect API, admin API
-ml-service/   FastAPI — injection ensemble: n-grams + multilingual embeddings + similarity (trained at image build)
+ml-service/   FastAPI — injection ensemble: n-grams + multilingual embeddings + similarity + a pretrained
+              transformer view; a chat model and a tool-content model (both trained at image build)
 mock-ai/      FastAPI — stand-in for the protected AI app
 datasets/     Training data (seed*, train*) and held-out evaluation data (heldout*) + the scripts that build them
 docs/         API docs and results
@@ -46,11 +47,17 @@ architecture · 2 code walkthrough · 3 algorithms and design decisions · 4 tes
 attacks, bots and leaks — no code). Sessions and `cmp_action`: see
 [Sessions and decisions](#sessions-and-decisions) below.
 
+**Integrating with CMP:** [docs/integration-with-cmp.md](docs/integration-with-cmp.md) — the six hook
+points (chat start, identity verification, customer message, tool results, AI reply, chat end), what CMP
+does with each `cmp_action`, timeouts and fail-open/fail-closed per hook, and a monitor-first rollout.
+**Deploying on AWS:** [docs/deployment-aws.md](docs/deployment-aws.md) — ECS Fargate for the two
+services, ElastiCache and RDS for the state, step-by-step with task definitions, sizing, CI/CD and cost.
+
 **Hands-on testing guide:** [TESTING.md](TESTING.md) — start the stack, send demo traffic, try your own
 messages, read the audit trail and the Grafana dashboard. `gateway/scripts/coverage_traffic.py` triggers
 every check and reason code (73/73 outcomes), so every dashboard panel has data;
-`gateway/scripts/run_scenarios.py` plays 85 test chats from `datasets/sessions/scenarios.yaml` as
-sessions and checks every step's outcome (85/85).
+`gateway/scripts/run_scenarios.py` plays 90 test chats from `datasets/sessions/scenarios.yaml` as
+sessions and checks every step's outcome (90/90).
 
 ## Quick start (full stack in Docker)
 
@@ -179,6 +186,7 @@ Explained in [GUIDE.md §14](GUIDE.md#14-how-it-connects-to-cmp).
 | GET | `/ready` | none | Readiness: probes Redis, Postgres, ML service; 503 names the failing one |
 | POST | `/v1/inspect` | API key, scope `inspect` | Decision for one customer message of a session (`session_id` required); includes `cmp_action`; the caller enforces it (and forwards `redacted_message` when present) |
 | POST | `/v1/inspect/outbound` | API key, scope `outbound` | Checks an AI reply before delivery against the session's scope (or `allowed_identifiers`); deliver `deliver` (never the raw reply), or a fallback when it is `null` |
+| POST | `/v1/inspect/tool-result` | API key, scope `tool` | Checks a tool's output before the AI reads it; `deliver` is the result with poisoned pieces removed (`deliver_without_tools`) or `null` (`withhold`) |
 | POST | `/v1/sessions/{id}/start` | API key, scope `inspect` | Session attributes (channel, customer, IP, device, user agent), inherited by later calls; idempotent |
 | POST | `/v1/sessions/{id}/identity` | API key, scope `inspect` | CMP's IDV result: `verified: true` → session state `verified` and the customer's own identifiers (stored as keyed hashes); `false` → back to anonymous |
 | POST | `/v1/sessions/{id}/end` | API key, scope `inspect` | Forget the session and its conversation memory (strikes and bans stay until they expire) |
@@ -196,6 +204,8 @@ Explained in [GUIDE.md §14](GUIDE.md#14-how-it-connects-to-cmp).
 | DELETE | `/admin/sessions/{id}` | admin key | Reset a session: forget its conversation memory (unlocks it) and its reputation and strikes (bans are not lifted) |
 | POST / GET | `/admin/canaries` | admin key | Create a canary token for the AI's system prompt (shown once) / list canaries (never the token) |
 | DELETE | `/admin/canaries/{id}` | admin key | Revoke a canary |
+| POST / GET | `/admin/protected-prompts` | admin key | Register the AI's system prompt for leak detection by content (only 8-word shingle hashes are stored) / list |
+| DELETE | `/admin/protected-prompts/{id}` | admin key | Revoke a protected prompt |
 | GET | `/admin/events?session_id=&api_key_id=&action=&cmp_action=&channel=&reason=&mode=&user_id=&ip=&label=&since=&until=&before=&limit=` | admin key | Search the audit trail (newest first; `next_before` pages; `user_id` takes a raw customer id or its `cu_…` hash) |
 | GET | `/admin/events/{id}` | admin key | One event with every check |
 | POST | `/admin/events/{id}/label` | admin key | Mark `false_positive` / `true_positive` (or `null` to clear) |
@@ -286,11 +296,11 @@ uv run python -m app.db.migrate
 
 | Check | Result |
 |---|---|
-| Gateway unit tests | 349 passed |
+| Gateway unit tests | 364 passed |
 | Gateway integration tests (real Redis/Postgres/ML model/mock AI + container; isolated by caller key and unique session ids) | 31 passed |
 | Live smoke test | 71/71 steps |
 | Coverage traffic (`scripts/coverage_traffic.py`) | 73/73 expected outcomes |
-| Session scenarios (`scripts/run_scenarios.py`) | 85/85 chats, 186/186 steps |
+| Session scenarios (`scripts/run_scenarios.py`) | 90/90 chats, 196/196 steps |
 | ML service tests (offline hash embedder + one real-embedder test) / mock AI | 19 / 3 passed |
 | Gateway lint / format / mypy strict; ML lint | clean |
 

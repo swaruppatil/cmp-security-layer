@@ -136,7 +136,7 @@ stored only as keyed hashes (`cu_<32 hex>`); `GET /admin/sessions/<id>` shows a 
 
 ### Test every check, session by session: the scenario library
 
-`datasets/sessions/scenarios.yaml` holds **85 scenarios**: test chats played the way CMP would drive
+`datasets/sessions/scenarios.yaml` holds **90 scenarios**: test chats played the way CMP would drive
 them, one session per chat (start → customer messages → AI replies → identity verification → end).
 Every step states what the gateway must answer: action, `cmp_action`, reasons, redactions, which
 check fired and with what detail. `scripts/run_scenarios.py` plays them against the running stack and
@@ -176,7 +176,7 @@ Output — one line per scenario, then a summary by tag:
 ```
 ✓ PASS         conv-leaking-ai-locks-and-hands-off    8/8 steps   14.2s  [conversation, outbound]
 …
-run 371870: 85 passed, 0 failed, 0 warnings, 0 inconclusive, 0 errors — 186/186 steps ok — 86s
+run 0db482: 90 passed, 0 failed, 0 warnings, 0 inconclusive, 0 errors — 196/196 steps ok — 73s
 ```
 
 A failed scenario lists each failed step with what came back and what was expected. **WARN** marks a
@@ -416,13 +416,13 @@ All of these are also clickable in Swagger UI (http://localhost:18080/docs): fil
 
 | Suite | Command | Needs the stack | Time |
 |---|---|---|---|
-| Gateway unit tests (349) | `cd gateway && uv run pytest` | no | ~10 s |
+| Gateway unit tests (364) | `cd gateway && uv run pytest` | no | ~10 s |
 | ML service tests | `cd ml-service && uv run pytest` | no | ~10 s |
 | Mock AI tests | `cd mock-ai && uv run pytest` | no | ~1 s |
 | Integration tests (31; real Redis, Postgres, ML, container) | `cd gateway && uv run pytest -m integration -s` | yes | ~1–2 min |
 | Live smoke test (71 steps, PASS/FAIL per step) | `cd gateway && uv run python scripts/smoke_test.py` | yes | ~10 s |
 | Coverage traffic (73 outcomes) | `cd gateway && uv run python scripts/coverage_traffic.py` | yes | ~1 min |
-| Session scenarios (85 chats, 186 steps) | `cd gateway && uv run python scripts/run_scenarios.py` | yes | ~1.5 min |
+| Session scenarios (90 chats, 196 steps) | `cd gateway && uv run python scripts/run_scenarios.py` | yes | ~1.5 min |
 | Bot simulation (people vs scripts) | `cd gateway && uv run python -m scripts.simulate_bots` | yes | ~30 s |
 | Multi-turn evaluation report | `cd gateway && uv run python -m scripts.eval_multiturn` | yes | ~3 min |
 | Model evaluation report | `cd ml-service && uv run python -m evaluation.evaluate --all` | no | ~1 min |

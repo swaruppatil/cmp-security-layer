@@ -42,10 +42,16 @@ from app.ml.client import keep_warm as keep_ml_warm
 from app.outbound.canary import CanaryService
 from app.outbound.checks import (
     make_canary_check,
+    make_prompt_leak_check,
+    make_reply_commitment_check,
+    make_reply_credential_request_check,
     make_reply_data_check,
+    make_reply_injection_check,
     make_reply_links_check,
+    make_reply_shape_check,
     make_reply_size_check,
 )
+from app.outbound.prompt_leak import PromptLeakService
 from app.pipeline.after import AfterDecision
 from app.pipeline.checks import (
     make_admission_check,
@@ -53,10 +59,15 @@ from app.pipeline.checks import (
     make_bot_check,
     make_conversation_check,
     make_conversation_memory_check,
+    make_enumeration_check,
+    make_failure_policy_check,
+    make_fusion_check,
     make_ml_check,
+    make_off_topic_check,
     make_rules_check,
     make_sensitive_check,
     make_size_check,
+    make_untrusted_content_check,
 )
 from app.pipeline.engine import Pipeline, Stage
 from app.policy.service import PolicyService
@@ -67,15 +78,18 @@ from app.routes import (
     admin_canaries,
     admin_events,
     admin_policies,
+    admin_prompts,
     admin_sessions,
     health,
     inspect,
+    inspect_tool_results,
     proxy,
     sessions,
 )
 from app.security import request_id
 from app.session.service import SessionService
 from app.state.admission import AdmissionService
+from app.state.enumeration import EnumerationTracker
 from app.state.events import listen_events, refresh_bans_periodically
 from app.state.shared_ip import SharedIpTracker
 
@@ -109,7 +123,10 @@ OPENAPI_TAGS = [
         "name": "admin: sessions",
         "description": "One session: attributes, verification, memory, bans, strikes.",
     },
-    {"name": "admin: canaries", "description": "Canary tokens for system-prompt leak detection."},
+    {
+        "name": "admin: canaries",
+        "description": "System-prompt leak detection: canary tokens and protected prompts (shingles).",
+    },
 ]
 
 
@@ -120,6 +137,7 @@ def build_pipeline(
     ml: MLClient,
     conversations: ConversationService | None = None,
     bots: BotService | None = None,
+    enumeration: EnumerationTracker | None = None,
 ) -> Pipeline:
     """The ordered checks: cheapest first, identity before content, the network-bound ML tier last,
     then the multi-turn analysis that needs everyone else's results.
@@ -137,16 +155,27 @@ def build_pipeline(
     ]
     if settings.sensitive_enabled:
         stages.append(Stage(make_sensitive_check(settings)))  # local regex, redacts before anything else
+        if settings.enum_enabled and enumeration is not None:
+            stages.append(Stage(make_enumeration_check(enumeration, settings)))  # one Redis call, if any ids
     tracked = settings.conversation_enabled and conversations is not None
     if tracked:
         assert conversations is not None
         stages.append(Stage(make_conversation_memory_check(conversations, settings)))  # one Redis GET
     if settings.rules_enabled:
         stages.append(Stage(make_rules_check(settings), needs_text=True))  # local, ~50 µs
+        stages.append(
+            Stage(make_untrusted_content_check(settings), needs_text=True)
+        )  # tool results, documents
     if settings.ml_enabled:
         stages.append(Stage(make_ml_check(ml, settings), needs_text=True))  # ML service, ≤ ML_TIMEOUT_MS
+        stages.append(Stage(make_off_topic_check(settings), needs_text=True))  # local, from the ML answer
+        if settings.rules_enabled:
+            stages.append(
+                Stage(make_fusion_check(settings), needs_text=True)
+            )  # local, weak signals that agree
     if tracked:
         stages.append(Stage(make_conversation_check(settings)))  # local, uses the results above
+    stages.append(Stage(make_failure_policy_check(settings), needs_text=False))  # local, last
     return Pipeline(stages)
 
 
@@ -189,16 +218,26 @@ async def bootstrap_caller_key(store: Any, cfg: Settings) -> None:
         log.info("bootstrap caller key created", extra={"prefix": parsed.prefix})
 
 
-def build_outbound_pipeline(settings: Settings, canaries: CanaryService) -> Pipeline:
-    """Checks on an AI reply: size, canary leak, sensitive / out-of-scope data, exfiltration links."""
-    return Pipeline(
-        [
-            Stage(make_reply_size_check(settings)),
-            Stage(make_canary_check(canaries)),
-            Stage(make_reply_data_check(settings)),
-            Stage(make_reply_links_check(settings)),
-        ]
-    )
+def build_outbound_pipeline(
+    settings: Settings,
+    canaries: CanaryService,
+    prompts: PromptLeakService | None = None,
+    enumeration: EnumerationTracker | None = None,
+) -> Pipeline:
+    """Checks on an AI reply: size, prompt leaks (canary and content), echoed injections, requests for
+    credentials, sensitive / out-of-scope data, unverified commitments, shape, exfiltration links."""
+    stages = [Stage(make_reply_size_check(settings)), Stage(make_canary_check(canaries))]
+    if prompts is not None:
+        stages.append(Stage(make_prompt_leak_check(prompts, settings)))
+    stages += [
+        Stage(make_reply_injection_check(settings)),
+        Stage(make_reply_credential_request_check(settings)),
+        Stage(make_reply_data_check(settings, enumeration)),
+        Stage(make_reply_commitment_check(settings)),
+        Stage(make_reply_shape_check(settings)),
+        Stage(make_reply_links_check(settings)),
+    ]
+    return Pipeline(stages)
 
 
 def create_app(
@@ -268,11 +307,21 @@ def create_app(
         )
         metrics.ACTIVE_BANS.set_function(lambda: app.state.bans.index.size)
         app.state.bots = BotService(redis, cfg)
+        enumeration = EnumerationTracker(redis, cfg)
         app.state.pipeline = build_pipeline(
-            cfg, app.state.bans, app.state.admission, app.state.ml, app.state.conversations, app.state.bots
+            cfg,
+            app.state.bans,
+            app.state.admission,
+            app.state.ml,
+            app.state.conversations,
+            app.state.bots,
+            enumeration,
         )
         app.state.canaries = CanaryService(store, ttl_seconds=cfg.canary_cache_ttl_seconds)
-        app.state.outbound_pipeline = build_outbound_pipeline(cfg, app.state.canaries)
+        app.state.prompt_leak = PromptLeakService(store, ttl_seconds=cfg.canary_cache_ttl_seconds)
+        app.state.outbound_pipeline = build_outbound_pipeline(
+            cfg, app.state.canaries, app.state.prompt_leak, enumeration
+        )
 
         if owned_deps and cfg.ml_enabled:
             await warm_up_ml(app.state.deps.ml)
@@ -347,11 +396,13 @@ def create_app(
 
     app.include_router(health.router)
     app.include_router(inspect.router)
+    app.include_router(inspect_tool_results.router)
     app.include_router(sessions.router)
     app.include_router(admin.router)
     app.include_router(admin_bans.router)
     app.include_router(admin_sessions.router)
     app.include_router(admin_canaries.router)
+    app.include_router(admin_prompts.router)
     app.include_router(admin_events.router)
     app.include_router(admin_policies.router)
     app.include_router(proxy.router)

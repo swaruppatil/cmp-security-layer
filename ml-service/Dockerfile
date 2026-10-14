@@ -11,10 +11,16 @@ COPY ml-service/training ./training
 COPY ml-service/evaluation ./evaluation
 COPY datasets /datasets
 ENV PATH="/app/.venv/bin:$PATH"
-# Train at build time: every image carries a known, reproducible model (version, thresholds and
+# Train at build time: every image carries known, reproducible models (version, thresholds and
 # held-out evaluation in /v1/model). This also downloads the embedding model (~230 MB ONNX) into
 # /app/.cache, so the running container never needs network access.
-RUN python -m training.train --data /datasets --out /app/models --cache-dir /app/.cache --no-report
+#  * chat model (customer messages), --strict: the build fails when the model misses its
+#    false-positive budget on realistic held-out customer text;
+#  * tool-content model (tool output the AI reads), trained on the chat data plus /datasets/tool and
+#    calibrated on tool content, budget checked on the tool held-out set.
+RUN python -m training.train --data /datasets --out /app/models --cache-dir /app/.cache --no-report --strict \
+ && python -m training.train --data /datasets --data /datasets/tool --out /app/models/tool \
+      --cache-dir /app/.cache --no-report --name tool --budget-set toolcontent --budget-set handwritten
 RUN useradd --create-home appuser && chown -R appuser /app
 USER appuser
 ENV ML_MODEL_DIR=/app/models ML_EMBED_CACHE_DIR=/app/.cache HF_HUB_OFFLINE=1

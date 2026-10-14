@@ -56,6 +56,9 @@ class MLScore:
     components: dict[str, Any] | None = None
     # One entry per text sent, in order (score, components, and the embedding when requested).
     per_text: list[TextScore] = field(default_factory=list)
+    # Which of the service's models answered: "chat" (customer messages) or "tool" (tool results; the
+    # service falls back to "chat" when it has no tool model). None from a service that does not say.
+    model: str | None = None
 
 
 class MLClient:
@@ -66,7 +69,9 @@ class MLClient:
         self.shed = 0  # calls refused because the tier was saturated (observability)
         self.last_used = time.monotonic()
 
-    async def score(self, texts: list[str], max_chars: int, *, vectors: bool = False) -> MLScore:
+    async def score(
+        self, texts: list[str], max_chars: int, *, vectors: bool = False, model: str = "chat"
+    ) -> MLScore:
         self.last_used = time.monotonic()
         if self._sem.locked():
             self.shed += 1
@@ -74,6 +79,8 @@ class MLClient:
         payload: dict[str, Any] = {"texts": [t[:max_chars] for t in texts[:MAX_TEXTS]]}
         if vectors:
             payload["return_vectors"] = True
+        if model != "chat":
+            payload["model"] = model
         async with self._sem:
             try:
                 res = await asyncio.wait_for(
@@ -92,6 +99,8 @@ class MLClient:
             top = max(range(len(scores)), key=scores.__getitem__) if scores else None
             raw = body.get("thresholds")
             thresholds = {"block": float(raw["block"]), "restrict": float(raw["restrict"])} if raw else None
+            if thresholds is not None and raw is not None and raw.get("off_topic") is not None:
+                thresholds["off_topic"] = float(raw["off_topic"])
             return MLScore(
                 score=max(scores, default=0.0),
                 scores=scores,
@@ -103,6 +112,7 @@ class MLClient:
                     TextScore(float(r["score"]), r.get("components"), decode_vector(r.get("vector")))
                     for r in results
                 ],
+                model=body.get("model"),
             )
         except (ValueError, KeyError, TypeError, struct.error):
             raise MLUnavailable("bad_response") from None

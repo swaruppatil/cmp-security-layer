@@ -56,6 +56,7 @@ class FakeRepo:
         self.bans: dict[UUID, dict[str, Any]] = {}
         self.strikes: list[dict[str, Any]] = []
         self.canaries: dict[UUID, dict[str, Any]] = {}
+        self.prompts: dict[UUID, dict[str, Any]] = {}
         self.events: dict[UUID, dict[str, Any]] = {}
         self.fail_event_inserts = False
         self.policies: dict[UUID, dict[str, Any]] = {}
@@ -220,6 +221,38 @@ class FakeRepo:
             return None
         p["active"] = False
         return dict(p)
+
+    # --- protected prompts ---
+    async def create_protected_prompt(
+        self, label: str, shingles: list[str], word_count: int
+    ) -> dict[str, Any]:
+        pid = uuid.uuid4()
+        self.prompts[pid] = {
+            "id": pid,
+            "label": label,
+            "shingles": shingles,
+            "word_count": word_count,
+            "created_at": datetime.now(UTC),
+            "revoked_at": None,
+        }
+        return {k: v for k, v in self.prompts[pid].items() if k != "shingles"}
+
+    async def list_protected_prompts(self) -> list[dict[str, Any]]:
+        return [{k: v for k, v in r.items() if k != "shingles"} for r in self.prompts.values()]
+
+    async def revoke_protected_prompt(self, prompt_id: UUID) -> dict[str, Any] | None:
+        r = self.prompts.get(prompt_id)
+        if r is None or r["revoked_at"] is not None:
+            return None
+        r["revoked_at"] = datetime.now(UTC)
+        return {k: v for k, v in r.items() if k != "shingles"}
+
+    async def active_prompt_shingles(self) -> list[dict[str, Any]]:
+        return [
+            {"id": r["id"], "shingles": r["shingles"]}
+            for r in self.prompts.values()
+            if r["revoked_at"] is None
+        ]
 
     # --- canaries ---
     async def create_canary(self, label: str, token_hash: str) -> dict[str, Any]:
@@ -392,8 +425,16 @@ def upstream_echo(request: httpx.Request) -> httpx.Response:
     )
 
 
+def rules_agree(text: str) -> float:
+    """Default fake score: what a sane model says. Text the rule engine finds high-severity scores
+    0.95 (so provisional phrase-rule blocks are confirmed, as the real model does), the rest 0.01."""
+    from app.detectors.engine import analyze
+
+    return 0.95 if analyze([text], allowed_link_domains=(), max_links=5).severity == "high" else 0.01
+
+
 def ml_scores(
-    score_for: Callable[[str], float] = lambda _t: 0.01, thresholds: dict[str, float] | None = None
+    score_for: Callable[[str], float] = rules_agree, thresholds: dict[str, float] | None = None
 ) -> Handler:
     """Fake ML service: answers /v1/score like the real one, with one score per text. With
     ``thresholds`` it also sends the model's calibrated operating point and score components."""

@@ -1,0 +1,356 @@
+{
+  "sources": {
+    "bipia": {
+      "repo": "microsoft/BIPIA",
+      "host": "github",
+      "revision": "a004b69ec0dd446e0afd461d98cb5e96e120a5d0",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "benchmark/text_attack_train.json",
+          "bytes": 5999,
+          "sha256": "63f95d3e67eac4178cdabdbdaf192cd05f2b6ed0702b578f1d30d556e5155670"
+        },
+        {
+          "path": "benchmark/text_attack_test.json",
+          "bytes": 6322,
+          "sha256": "75750e7b4e8b34e8f9d88d89b357aeaaf02bd07f9e493ccd37eda74a0cd7c7f8"
+        },
+        {
+          "path": "benchmark/code_attack_train.json",
+          "bytes": 16343,
+          "sha256": "fe515080b6da2b5c0b67ca7ba2a3b3c2ce57c48f45733c475ebc813cba118484"
+        },
+        {
+          "path": "benchmark/code_attack_test.json",
+          "bytes": 16356,
+          "sha256": "892545c5aaec0645b1ded65dc7816b3d70e9ef4eadcba2301a7a3db93676b6e0"
+        }
+      ]
+    },
+    "injecagent": {
+      "repo": "uiuc-kang-lab/InjecAgent",
+      "host": "github",
+      "revision": "f19c9f2c79a41046eb13c03c51a24c567a8ffa07",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "data/attacker_cases_dh.jsonl",
+          "bytes": 10937,
+          "sha256": "999d52e15af3c80a3303a09430af0f3878d1f91e4c573ca7b477a91cdfa6b991"
+        },
+        {
+          "path": "data/attacker_cases_ds.jsonl",
+          "bytes": 13209,
+          "sha256": "87952398c989d8ca841724e38ecdbb789676d3841e19dfc44aac7b710df9cb1f"
+        },
+        {
+          "path": "data/user_cases.jsonl",
+          "bytes": 10924,
+          "sha256": "c840e2b00fdce68e7142d0970220522303d67b2530d6fb36ef1112448cdd8977"
+        }
+      ]
+    },
+    "jailbreakbench-artifacts": {
+      "repo": "JailbreakBench/artifacts",
+      "host": "github",
+      "revision": "909e68c01d94222b8ad2e397a017e2e12e2adb73",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "attack-artifacts/DSN/white_box/llama-2-7b-chat-hf.json",
+          "bytes": 126910,
+          "sha256": "9bcdbe88b18e729ca9abf593d3e5141e7958aff0eb3a0e62ae92b8f64acbdcd9"
+        },
+        {
+          "path": "attack-artifacts/DSN/white_box/vicuna-13b-v1.5.json",
+          "bytes": 128486,
+          "sha256": "ea0a5f7331baf595fb6e6925423f43367cbce8da9273ce93c6a03e2201e3373d"
+        },
+        {
+          "path": "attack-artifacts/GCG/transfer/gpt-3.5-turbo-1106.json",
+          "bytes": 128899,
+          "sha256": "ff185b1dc73732d830e96efdb3f4a92294ee72e9c88a1800b1d11d4ecb3d4cdf"
+        },
+        {
+          "path": "attack-artifacts/GCG/transfer/gpt-4-0125-preview.json",
+          "bytes": 94384,
+          "sha256": "af54543a06e3702256315517ee6e6a7b0edf182dd2c6d938216fa58cbea8de23"
+        },
+        {
+          "path": "attack-artifacts/GCG/white_box/llama-2-7b-chat-hf.json",
+          "bytes": 141247,
+          "sha256": "f76cbaf899c79ca8eed6a6ed26d6f8789933c5595a9a5ee028e305dec4dd95f7"
+        },
+        {
+          "path": "attack-artifacts/GCG/white_box/vicuna-13b-v1.5.json",
+          "bytes": 134533,
+          "sha256": "9eff8b6f78cae002737868ca8cdd886be5afcd1cbbbe4cf51ff837bc688b01b1"
+        },
+        {
+          "path": "attack-artifacts/JBC/manual/gpt-3.5-turbo-1106.json",
+          "bytes": 241037,
+          "sha256": "5999b8f2fc5e85fd4f7d6553abaeaa66f2dc10c5354faa41622e511c08eab871"
+        },
+        {
+          "path": "attack-artifacts/JBC/manual/gpt-4-0125-preview.json",
+          "bytes": 241354,
+          "sha256": "1785f7cf838522461b5b9af3fa606715ecf55c194581f4c8c5c9f1945b59db05"
+        },
+        {
+          "path": "attack-artifacts/JBC/manual/llama-2-7b-chat-hf.json",
+          "bytes": 305856,
+          "sha256": "1607a5a5b9f50abc7f2ff9e07b7257dfde7228b88cfdf73c20f5f56108ffdd23"
+        },
+        {
+          "path": "attack-artifacts/JBC/manual/vicuna-13b-v1.5.json",
+          "bytes": 298772,
+          "sha256": "1d5df5aa451c3d1bb8a4c048a7b2e1e6132e72f2970cb9d94ffc77f44e0edb39"
+        },
+        {
+          "path": "attack-artifacts/PAIR/black_box/gpt-3.5-turbo-1106.json",
+          "bytes": 164371,
+          "sha256": "49e007ce488e606cede7ffc8b022e35080b7f3870956e4cb2423d9b42749c78f"
+        },
+        {
+          "path": "attack-artifacts/PAIR/black_box/gpt-4-0125-preview.json",
+          "bytes": 135998,
+          "sha256": "6dd214eee78184daf048ac8af166641724b49fd25bc831e5d7201469c162004d"
+        },
+        {
+          "path": "attack-artifacts/PAIR/black_box/llama-2-7b-chat-hf.json",
+          "bytes": 59328,
+          "sha256": "02819296c5d992568d732d37813b2ce34624068a20f21025c04c04d52820b029"
+        },
+        {
+          "path": "attack-artifacts/PAIR/black_box/vicuna-13b-v1.5.json",
+          "bytes": 149383,
+          "sha256": "18b101386419a98fbdf45cb987069f83af3a40d5e0f7f0d32c4e9dc5ecc049b4"
+        },
+        {
+          "path": "attack-artifacts/prompt_with_random_search/black_box/gpt-3.5-turbo-1106.json",
+          "bytes": 364405,
+          "sha256": "d4a0691eda37b02dc948b6d6d08460f7d5cd3f15099121b388a58634ffb7bd76"
+        },
+        {
+          "path": "attack-artifacts/prompt_with_random_search/black_box/gpt-4-0125-preview.json",
+          "bytes": 362507,
+          "sha256": "4a0573dba6823c676cab99ed54b8191244080883948270fac9b75255b7c69206"
+        },
+        {
+          "path": "attack-artifacts/prompt_with_random_search/black_box/llama-2-7b-chat-hf.json",
+          "bytes": 351767,
+          "sha256": "45df98af6e1c0e35747f6b9c80cdc606e96c76a511e09a1a49ad5b00cfb51c0a"
+        },
+        {
+          "path": "attack-artifacts/prompt_with_random_search/black_box/vicuna-13b-v1.5.json",
+          "bytes": 322732,
+          "sha256": "9d87a56659f617438feb5770bb2c8e4c2dbbd1bd62964f2c1a8775988017ac5d"
+        },
+        {
+          "path": "attack-artifacts/test-artifact/black_box/llama-2-7b-chat-hf.json",
+          "bytes": 1134,
+          "sha256": "8c15a45b5ad795a4f559ecb355b23b715663d4eab9f9468400bb1ff06fbb4655"
+        },
+        {
+          "path": "attack-artifacts/test-artifact/black_box/vicuna-13b-v1.5.json",
+          "bytes": 1131,
+          "sha256": "c6cde876727b9b285f36a620ebb8e75258dc48876b492ff03be312e4e65f65d3"
+        },
+        {
+          "path": "attack-artifacts/test-artifact/white_box/vicuna-13b-v1.5.json",
+          "bytes": 1131,
+          "sha256": "fc008ae32cc25cc1f2b88b05f16f0ff96894639090a6b132c0384e99fb3c0c19"
+        }
+      ]
+    },
+    "jailbreakbench-behaviors": {
+      "repo": "JailbreakBench/JBB-Behaviors",
+      "host": "hf",
+      "revision": "886acc352a31533ffbcf4ef22c744658688086fc",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "data/harmful-behaviors.csv",
+          "bytes": 23116,
+          "sha256": "4a8ec6832056b631eb092dccc60d37a61c3d441268268888b3d006288afeffa1"
+        },
+        {
+          "path": "data/benign-behaviors.csv",
+          "bytes": 20570,
+          "sha256": "3cda234d21a991fa309bbfea4b6d9dae31ccdf8e9d452424b6a983e4fdc33468"
+        }
+      ]
+    },
+    "advbench": {
+      "repo": "llm-attacks/llm-attacks",
+      "host": "github",
+      "revision": "098262edf85f807224e70ecd87b9d83716bf6b73",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "data/advbench/harmful_behaviors.csv",
+          "bytes": 82125,
+          "sha256": "6cd1a5c63c07610d7eb67307772ee5606017ee950b5770ab288a2c487489d3e1"
+        },
+        {
+          "path": "data/advbench/harmful_strings.csv",
+          "bytes": 34654,
+          "sha256": "2c4751403195634f88eb849d923670cb2d9a883bcc3d74456bf2f08141424a15"
+        }
+      ]
+    },
+    "garak": {
+      "repo": "NVIDIA/garak",
+      "host": "github",
+      "revision": "cd87893be81bed4ced9afd86b88577289f4644bf",
+      "license": "Apache-2.0",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "garak/data/agent_breaker/prompts.yaml",
+          "bytes": 13843,
+          "sha256": "8e1b1c4c41f8022c719522f2502efc4e2b3e0d09322763034847fde0f4708685"
+        },
+        {
+          "path": "garak/data/autodan/autodan_init.txt",
+          "bytes": 3700,
+          "sha256": "dcdf1f1a803c3477e620de89bdf442ec0f66bc56409108340d22b7d9c02f36a9"
+        },
+        {
+          "path": "garak/data/autodan/autodan_prompts.json",
+          "bytes": 4518,
+          "sha256": "215287013b6a210d52ba36fd17de9f85836b058a654271a3693d9216fb002d1b"
+        },
+        {
+          "path": "garak/data/dan/AntiDAN.json",
+          "bytes": 3328,
+          "sha256": "98e0358270faa340c7bde66bc9ad1f696abadc0a45677370b8de0c8c01eac634"
+        },
+        {
+          "path": "garak/data/dan/ChatGPT_Developer_Mode_RANTI.json",
+          "bytes": 4565,
+          "sha256": "970b7633f5d8ddb781881ae8ed3fb49fa6cbb15d5a4842ba84f8dd459d00434b"
+        },
+        {
+          "path": "garak/data/dan/ChatGPT_Developer_Mode_v2.json",
+          "bytes": 4074,
+          "sha256": "b3df0ad788756e1dce40d0d77b7ccc9ab807b468e109d68632eb2ff340299a4b"
+        },
+        {
+          "path": "garak/data/dan/ChatGPT_Image_Markdown.json",
+          "bytes": 1964,
+          "sha256": "b97837b81d283f52bba9ed18fee7eb045b675ff09740ff5bffdb5e778150821a"
+        },
+        {
+          "path": "garak/data/dan/DAN_Jailbreak.json",
+          "bytes": 4238,
+          "sha256": "0b3f7d52339ab12b39c08870720c3a2665cb516dbb149750eac09c78e2f8b1a4"
+        },
+        {
+          "path": "garak/data/dan/DUDE.json",
+          "bytes": 2299,
+          "sha256": "355757fbb4a7fa6d07af49738dec1f3d26d2c7ad9579178c2ed6d45c83310520"
+        },
+        {
+          "path": "garak/data/dan/Dan_10_0.json",
+          "bytes": 2990,
+          "sha256": "bb76232973e00479992195218373d02b2b9b3d6162623036422ee7caf79fe4c2"
+        },
+        {
+          "path": "garak/data/dan/Dan_11_0.json",
+          "bytes": 4750,
+          "sha256": "5920cdd9c280e7a8bd66b2effbe58dc9558f4b737da0b45cce35666804bb250d"
+        },
+        {
+          "path": "garak/data/dan/Dan_6_0.json",
+          "bytes": 1973,
+          "sha256": "6671ca9023bc66d2387a275c0b42aa6047578918aae6cb52181e73bb7528fad1"
+        },
+        {
+          "path": "garak/data/dan/Dan_6_2.json",
+          "bytes": 2940,
+          "sha256": "19b79eacb9cd9dca06094c373741be71e199d73734c7cba696cc6ca1780d6ccc"
+        },
+        {
+          "path": "garak/data/dan/Dan_7_0.json",
+          "bytes": 1319,
+          "sha256": "b85d6e74e7262914d14894e97b3fea7c7bef678bd58ffab60bbfa85253d61c80"
+        },
+        {
+          "path": "garak/data/dan/Dan_8_0.json",
+          "bytes": 2926,
+          "sha256": "62ae47c12ee52e033e1318456964cb3114318e17bb1405a2c3aa2afe46316d4b"
+        },
+        {
+          "path": "garak/data/dan/Dan_9_0.json",
+          "bytes": 2545,
+          "sha256": "5c263be1049269aaa04090cde89d6ae5b6e495e11add963dcaac804ad56e35ad"
+        },
+        {
+          "path": "garak/data/dan/STAN.json",
+          "bytes": 1378,
+          "sha256": "91b91e958e863a43eab6331f99f0eb5d29c3534fd8d15c60ec404bdb805f0e1a"
+        },
+        {
+          "path": "garak/data/inthewild_jailbreak_llms.json",
+          "bytes": 1339768,
+          "sha256": "2e3496db26bab605498357a8670523bbca07a14438eee5a4c79e6a32968c1875"
+        }
+      ]
+    },
+    "tensor-trust": {
+      "repo": "HumanCompatibleAI/tensor-trust-data",
+      "host": "github",
+      "revision": "747a75e096761ebc01bd3970158827326b4add23",
+      "license": "none stated",
+      "use": "eval_only",
+      "files": [
+        {
+          "path": "benchmarks/hijacking-robustness/v1/hijacking_robustness_dataset.jsonl",
+          "bytes": 1701703,
+          "sha256": "2ad3c2343bbf43cb1924f3ec5d6f830864ce3c879e9832b01d93a991e7e2e680"
+        },
+        {
+          "path": "benchmarks/extraction-robustness/v1/extraction_robustness_dataset.jsonl",
+          "bytes": 685113,
+          "sha256": "4090f9f57b6df69cc32d7669ac991e3fd53e6e2bb616a5e6f45dac79c183ee4c"
+        },
+        {
+          "path": "detecting-extractions/v1/prompt_extraction_detection.jsonl",
+          "bytes": 160942,
+          "sha256": "af28d09554db4f8ed91d042005c3457f72c88e763e3787c3b1c76c1d9e8f8260"
+        }
+      ]
+    },
+    "multiturn-tomgibbs": {
+      "repo": "tom-gibbs/multi-turn_jailbreak_attack_datasets",
+      "host": "hf",
+      "revision": "e3b30257c4d6be5438ea19f0989ac82c24234fe4",
+      "license": "MIT",
+      "use": "train+eval",
+      "files": [
+        {
+          "path": "Harmful Dataset.csv",
+          "bytes": 12321843,
+          "sha256": "9b84edb9ebbf695b4884a897284022c4f75e382a577359bd031c6ec902a45f17"
+        },
+        {
+          "path": "Completely-Benign Dataset.csv",
+          "bytes": 3312419,
+          "sha256": "4efb90f0b4c8d54ad66353acd89bf4008413c80b9bf45ddc812b1f36847c7398"
+        },
+        {
+          "path": "Semi-Benign Dataset.csv",
+          "bytes": 3310195,
+          "sha256": "9acd4d02efaf7cdf79ac52841541e07bf405e7d9257884af7b55793fe0c839da"
+        }
+      ]
+    }
+  }
+}

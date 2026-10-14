@@ -41,8 +41,11 @@ class RequestContext:
     message_id: str | None = None
     # "anonymous" until CMP reports a successful identity verification for the session, then "verified".
     session_state: str = "anonymous"
-    # All text fields found in a proxied body (indirect-injection checks read every one).
+    # All customer-written text fields found in a proxied body (every check reads every one).
     text_fields: list[str] = field(default_factory=list)
+    # Text the AI fetched rather than the customer wrote (tool results, retrieved documents): scanned
+    # for indirect injection, never charged to the customer.
+    untrusted_fields: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
     # The end user's user agent: proxy mode reads the header (and expects one); inspect mode only has
@@ -71,6 +74,10 @@ class RequestContext:
     # Inbound: hashes of the identifiers (booking ref, email …) the customer typed, remembered for the
     # session so the AI may repeat them back.
     typed_identifiers: dict[str, set[str]] = field(default_factory=dict)
+    # Hashes of the verified customer's own identifiers (from identity verification): never counted as
+    # enumeration. And whether the session record could be read (False = the session store was down).
+    own_identifiers: dict[str, set[str]] = field(default_factory=dict)
+    session_store_ok: bool = True
     deliver: str | None = None
     results: list[CheckResult] = field(default_factory=list)  # results of the checks so far
     ml: MLScore | None = None  # the ML answer for this request (fields first, then the window)

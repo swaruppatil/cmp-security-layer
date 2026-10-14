@@ -72,8 +72,17 @@ def is_armed(state: ConversationState, s: Settings) -> bool:
     return state.setup_turn is not None and state.n - state.setup_turn <= s.conv_setup_turns
 
 
-def is_crescendo(state: ConversationState, attack_lean: float | None) -> bool:
-    """Attack-likeness strictly rising over the last three turns, and now leaning to attack."""
+def is_crescendo(state: ConversationState, attack_lean: float | None, mode: str = "strict") -> bool:
+    """Attack-likeness rising over the last turns and now leaning to attack. ``strict``: three turns,
+    strictly rising. ``loose``: of the last four turns' three steps, at least two rise and the latest
+    lean is above 0.1 — real probing wobbles, so a strictly monotone series almost never happens."""
+    if mode == "loose":
+        leans = [t.attack_lean for t in state.turns[-3:]] + [attack_lean]
+        values = [x for x in leans if x is not None]
+        if len(values) < 3 or values[-1] is None or values[-1] <= 0.1:
+            return False
+        rises = sum(1 for a, b in zip(values, values[1:], strict=False) if b > a)
+        return rises >= 2 and values[-1] > values[0]
     leans = [t.attack_lean for t in state.turns[-2:]] + [attack_lean]
     values = [x for x in leans if x is not None]
     if len(values) < 3:
@@ -89,7 +98,7 @@ def next_acc(
     armed = is_armed(state, s)
     if armed:
         excess *= s.conv_setup_boost
-    crescendo = is_crescendo(state, attack_lean)
+    crescendo = is_crescendo(state, attack_lean, s.conv_crescendo_mode)
     if crescendo:
         excess += s.conv_crescendo_bonus
     acc = s.conv_decay * state.acc + excess

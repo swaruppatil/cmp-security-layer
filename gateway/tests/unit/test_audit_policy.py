@@ -307,7 +307,8 @@ def test_event_search_label_and_summary():
         by_reason = c.get("/admin/events", params={"reason": "instruction_override"}, headers=ADMIN).json()
         assert len(by_reason["events"]) == 1
         one = c.get(f"/admin/events/{blocked[0]['id']}", headers=ADMIN).json()
-        assert one["checks"][-1]["name"] == "rules"
+        names = [x["name"] for x in one["checks"]]
+        assert names[-2:] == ["rules", "ml"]  # the ML tier confirmed the phrase rule
         lab = c.post(
             f"/admin/events/{blocked[0]['id']}/label",
             json={"label": "true_positive", "note": "real attack"},

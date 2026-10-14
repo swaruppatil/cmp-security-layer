@@ -116,5 +116,17 @@ def rot13(text: str) -> str:
     return codecs.encode(text, "rot13")
 
 
+def reversed_text(text: str) -> str:
+    """The text read backwards ("snoitcurtsni suoiverp lla erongi"); tried like ROT13, as a last resort."""
+    return text[::-1]
+
+
+REVERSE_HINT = re.compile(r"\b(?:backwards?|reversed?|in\s+reverse|mirror(?:ed)?)\b", re.IGNORECASE)
+
+
+def mentions_reverse(text: str) -> bool:
+    return bool(REVERSE_HINT.search(text))
+
+
 def mentions_rot13(text: str) -> bool:
     return bool(ROT13_HINT.search(text))

@@ -759,6 +759,11 @@ and refuses to start with a clear error if one is wrong.
 | `AUTH_CACHE_TTL_SECONDS` | 30 | How long a valid key stays cached |
 | `AUTH_NEGATIVE_CACHE_TTL_SECONDS` | 5 | How long an invalid key stays cached (stops bad-key floods hitting the database) |
 | `RATE_LIMIT_FAILURE_MODE` | open | If Redis is down: `open` allows requests, `closed` throttles them |
+| `SENSITIVE_ENDPOINTS` | booking\*,refund\*,payment\*,account\* | Endpoints that act on someone's data (a policy can also say `sensitive: true`) |
+| `DEGRADED_SENSITIVE_ACTION` | restrict | A sensitive request whose Redis-backed checks or session record were unavailable: `allow`, `restrict` or `block` (reason `state_unavailable`) |
+| `ENUM_ENABLED`, `ENUM_TYPES` | true; booking_ref,ticket,aeroplan | Identifier enumeration: which identifiers are counted |
+| `ENUM_WINDOW_SECONDS` | 600 | The counting window |
+| `ENUM_SESSION_RESTRICT_AT` / `ENUM_SESSION_BLOCK_AT` / `ENUM_IP_RESTRICT_AT` | 4 / 8 / 12 | Distinct identifiers in one chat → restrict / block; from one unshared IP across chats → restrict (the verified customer's own never count) |
 | `RL_<SCOPE>_CAPACITY` / `RL_<SCOPE>_REFILL_PER_SEC` | session 20/0.2 · user 30/0.5 · ip 60/1 · api_key 2000/200 · endpoint 5000/500 · global 10000/1000 | Burst size and sustained rate per bucket (`RL_GLOBAL_*` covers the whole gateway, all callers) |
 | `REPUTATION_HALF_LIFE_SECONDS` | 21600 | How fast reputation recovers (halves every 6 h) |
 | `REPUTATION_RESTRICT_AT` | 60 | Score at which requests are restricted |
@@ -834,7 +839,7 @@ Inside Docker Compose, the store and service URLs are overridden to the containe
 | Integration (gateway) | Real Redis/Postgres/mock AI, migrations (including the CMP refactor's schema changes), cross-instance revocation, the running container. Tests are isolated by their own caller key and unique session ids | `docker compose up -d --wait` then `cd gateway && uv run pytest -m integration` |
 | Smoke (live) | 71 real HTTP steps against the running stack: session lifecycle, retries and replays, the SMS length limit, key scopes … | `cd gateway && uv run python scripts/smoke_test.py` |
 | Coverage traffic | Triggers every check and reason code (73 expected outcomes), so every dashboard panel has data | `cd gateway && uv run python scripts/coverage_traffic.py` |
-| Session scenarios | 85 test chats played as sessions; every step's expected decision checked (see TESTING.md) | `cd gateway && uv run python scripts/run_scenarios.py` |
+| Session scenarios | 90 test chats played as sessions; every step's expected decision checked (see TESTING.md) | `cd gateway && uv run python scripts/run_scenarios.py` |
 | Unit (ML, mock AI) | Endpoints behave correctly | `uv run pytest` in each folder |
 | Lint / types | Code quality, no type errors | `uv run ruff check .`, `uv run ruff format --check .`, `uv run mypy app` |
 | Adversarial *(Stage 4+)* | Attacks are blocked, normal messages pass | dataset-driven tests |
@@ -846,11 +851,11 @@ Inside Docker Compose, the store and service URLs are overridden to the containe
 
 | Check | Result |
 |---|---|
-| Gateway unit tests | 349 passed |
+| Gateway unit tests | 364 passed |
 | Gateway integration tests | 31 passed |
 | Live smoke test (`scripts/smoke_test.py`) | 71/71 steps |
 | Coverage traffic (`scripts/coverage_traffic.py`) | 73/73 expected outcomes |
-| Session scenarios (`scripts/run_scenarios.py`) | 85/85 chats, 186/186 steps |
+| Session scenarios (`scripts/run_scenarios.py`) | 90/90 chats, 196/196 steps |
 | Seed dataset through rules + ML | 481/481 attacks caught; 1/1,282 benign restricted, none blocked (optimistic — trained on the same rows) |
 | ML service / mock AI tests | 19 / 3 passed |
 | Lint, format, mypy strict | clean |
@@ -992,7 +997,8 @@ Each stage ends with its tests passing and its commands added to the README.
 
 ## 17. Open decisions
 
-1. ML failure behaviour per endpoint: restrict, block or allow.
+1. ML failure behaviour per endpoint: restrict, block or allow. (For Redis / session-store failures this is
+   now settled: sensitive endpoints are restricted — `DEGRADED_SENSITIVE_ACTION`.)
 2. Who may approve permanent bans, and which entities can be banned permanently.
 3. Acceptable false-positive rate per action (e.g. blocks under 0.1% of real messages).
 4. A multilingual embedding model (better French) versus an English-only one (faster).

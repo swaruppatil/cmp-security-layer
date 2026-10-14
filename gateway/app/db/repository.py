@@ -12,7 +12,8 @@ import orjson
 from app.auth.models import ApiKeyRecord
 
 # inspect: POST /v1/inspect and the session calls · outbound: POST /v1/inspect/outbound · proxy: /v1/ai/*
-VALID_SCOPES = frozenset({"inspect", "outbound", "proxy"})
+# "tool": POST /v1/inspect/tool-result (CMP's AI agent, before the model reads a tool's output).
+VALID_SCOPES = frozenset({"inspect", "outbound", "proxy", "tool"})
 
 
 class Repository:
@@ -244,6 +245,38 @@ class Repository:
     async def active_canary_hashes(self) -> list[str]:
         rows = await self._pool.fetch("SELECT token_hash FROM canaries WHERE revoked_at IS NULL")
         return [r["token_hash"] for r in rows]
+
+    # ---------- protected prompts (prompt-leak detection by content) ----------
+    async def create_protected_prompt(
+        self, label: str, shingles: list[str], word_count: int
+    ) -> dict[str, Any]:
+        row = await self._pool.fetchrow(
+            """INSERT INTO protected_prompts (label, shingles, word_count) VALUES ($1, $2::jsonb, $3)
+               RETURNING id, label, word_count, created_at, revoked_at""",
+            label,
+            orjson.dumps(shingles).decode(),
+            word_count,
+        )
+        assert row is not None
+        return dict(row)
+
+    async def list_protected_prompts(self) -> list[dict[str, Any]]:
+        rows = await self._pool.fetch(
+            "SELECT id, label, word_count, created_at, revoked_at FROM protected_prompts ORDER BY created_at"
+        )
+        return [dict(r) for r in rows]
+
+    async def revoke_protected_prompt(self, prompt_id: UUID) -> dict[str, Any] | None:
+        row = await self._pool.fetchrow(
+            """UPDATE protected_prompts SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL
+               RETURNING id, label, word_count, created_at, revoked_at""",
+            prompt_id,
+        )
+        return dict(row) if row else None
+
+    async def active_prompt_shingles(self) -> list[dict[str, Any]]:
+        rows = await self._pool.fetch("SELECT id, shingles FROM protected_prompts WHERE revoked_at IS NULL")
+        return [{"id": r["id"], "shingles": orjson.loads(r["shingles"])} for r in rows]
 
     # ---------- audit events (Stage 9) ----------
     EVENT_COLUMNS = (

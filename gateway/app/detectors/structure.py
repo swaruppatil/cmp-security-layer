@@ -17,6 +17,8 @@ SCRIPT = re.compile(
 JS_URL = re.compile(r"\b(?:javascript|vbscript|data)\s*:", re.I)
 MD_IMAGE = re.compile(r"!\[[^\]]*\]\(\s*(https?://[^)\s]+)")
 URL = re.compile(r"\bhttps?://[^\s<>\"')\]]+", re.I)
+# Lines that start with a chat-role label: a pasted or forged transcript the model may continue.
+SPEAKER = re.compile(r"(?:^|\n)\s*(?:system|assistant|ai|human|user|bot|model)\s*:", re.I)
 
 
 @dataclass(frozen=True)
@@ -34,6 +36,15 @@ def repetition(text: str) -> Signal | None:
         top = max((words.count(w) for w in set(words)), default=0)
         if top / len(words) > 0.5 or len(set(words)) / len(words) < 0.1:
             return Signal("flood.repeated_words", "medium", f"{len(set(words))} distinct of {len(words)}")
+    return None
+
+
+def dialogue(text: str) -> Signal | None:
+    """Two or more lines that start with a chat-role label ("User: …", "Assistant: …"): a forged
+    transcript meant to put words in the assistant's mouth."""
+    n = len(SPEAKER.findall(text))
+    if n >= 2:
+        return Signal("tokens.fake_dialogue", "medium", f"{n} speaker labels")
     return None
 
 

@@ -36,6 +36,7 @@ from app.pipeline.decide import decide
 from app.pipeline.extract import (
     RESPONSE_TEXT_KEYS,
     combined_text,
+    extract,
     extract_text_fields,
     replace_text_fields,
 )
@@ -114,6 +115,7 @@ async def proxy(
         return JSONResponse({"error": "payload_too_large", "request_id": rid}, status_code=413)
 
     fields: list[str] = []
+    untrusted: list[str] = []
     parsed: Any = None
     content_type = request.headers.get("content-type", "")
     if raw:
@@ -122,7 +124,10 @@ async def proxy(
                 parsed = orjson.loads(raw)
             except orjson.JSONDecodeError:
                 return JSONResponse({"error": "invalid_json", "request_id": rid}, status_code=400)
-            fields = extract_text_fields(parsed)
+            # Customer text is judged; the app's own system/assistant turns are skipped; tool results
+            # and documents are scanned as untrusted content (restrict, never a strike).
+            found = extract(parsed)
+            fields, untrusted = found.customer, found.untrusted
         elif content_type.startswith("text/"):
             fields = [raw.decode("utf-8", errors="replace")]
 
@@ -131,6 +136,7 @@ async def proxy(
         principal=principal,
         text=combined_text(fields),
         text_fields=fields,
+        untrusted_fields=untrusted,
         endpoint=path,
         ip=client_ip(request, settings),
         user_id=request.app.state.sessions.customer(request.headers.get("x-end-user-id")),

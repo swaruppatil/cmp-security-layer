@@ -55,7 +55,9 @@ class Settings(BaseSettings):
 
     # --- ML service ---
     ml_url: str = "http://localhost:8000"
-    ml_timeout_ms: int = Field(50, gt=0)
+    # Embedding (~5 ms) + pretrained transformer view (~8 ms per text, batched) + a few segments of a
+    # long message; 150 ms keeps a chat-sized request inside the budget without shedding it.
+    ml_timeout_ms: int = Field(150, gt=0)
     ml_max_concurrency: int = Field(64, gt=0)
     ml_failure_mode: Literal["allow", "restrict", "block"] = "restrict"
     ml_enabled: bool = True
@@ -73,6 +75,21 @@ class Settings(BaseSettings):
 
     # --- fast rules (Stage 4) ---
     rules_enabled: bool = True
+    # A high-severity *phrase* rule (probabilistic evidence) blocks the message, but strikes the customer
+    # only when the ML tier agrees (score ≥ its restrict threshold). When the ML tier finds the text
+    # clearly benign (score < RULES_ML_CLEAR_BELOW) the block is softened to a restrict. Deterministic
+    # rules (template tokens, hidden text, encoded payloads) block and strike on their own.
+    rules_corroborate_with_ml: bool = True
+    rules_ml_clear_below: float = Field(0.3, ge=0, le=1)
+    # Fusion: two or more weak findings from different rule families plus an ML score within this much
+    # of the restrict threshold → restrict (no single check would have acted).
+    fusion_enabled: bool = True
+    fusion_ml_margin: float = Field(0.15, ge=0, le=1)
+    # Off-topic use of the assistant (homework, code, essays): what to do when the ML tier's topic
+    # similarity falls below the model's off_topic threshold. "flag" records it without acting.
+    off_topic_action: Literal["off", "flag", "restrict"] = "flag"
+    # Indirect injection found in content the AI fetched (tool results, documents) in proxy mode.
+    untrusted_content_action: Literal["off", "flag", "restrict", "block"] = "restrict"
     # Links to these domains (and their subdomains) are not flagged. Comma-separated.
     allowed_link_domains: str = "aircanada.com,aircanada.ca,aeroplan.com,flyaircanada.com"
     max_links: int = Field(5, ge=0)
@@ -92,6 +109,20 @@ class Settings(BaseSettings):
 
     # --- rate limiting (token buckets: capacity = burst size, refill = sustained rate per second) ---
     rate_limit_failure_mode: Literal["open", "closed"] = "open"
+    # Failure policy for sensitive endpoints (bookings, refunds, payments, account changes): when a
+    # check that needs Redis, or the session store, could not run, they are restricted (or blocked)
+    # instead of carrying on as if nothing were wrong. Ordinary chat is not affected.
+    sensitive_endpoints: str = "booking*,refund*,payment*,account*"  # globs; a policy can also say sensitive
+    degraded_sensitive_action: Literal["allow", "restrict", "block"] = "restrict"
+    # Identifier enumeration: one chat (or one IP across chats) trying many different booking references
+    # / tickets / Aeroplan numbers within the window. The customer's own verified identifiers never count;
+    # shared and never-ban IPs are not counted per IP.
+    enum_enabled: bool = True
+    enum_types: str = "booking_ref,ticket,aeroplan"
+    enum_window_seconds: int = Field(600, gt=0)
+    enum_session_restrict_at: int = Field(4, ge=2)
+    enum_session_block_at: int = Field(8, ge=2)
+    enum_ip_restrict_at: int = Field(12, ge=2)
     rl_ip_capacity: float = Field(60, gt=0)
     rl_ip_refill_per_sec: float = Field(1.0, gt=0)
     rl_user_capacity: float = Field(30, gt=0)
@@ -112,6 +143,11 @@ class Settings(BaseSettings):
 
     # --- strikes and bans ---
     strike_window_seconds: int = Field(30 * 24 * 3600, gt=0)
+    # A block whose only striking check is one of these (probabilistic, single-signal) does not strike
+    # the customer, device or IP: the message is still refused and the session's block count still
+    # grows (conversation lock, handoff), but one model verdict never starts the ban ladder. Two
+    # striking checks, or a deterministic one, always strike.
+    single_signal_no_strike: str = "ml,rules"
     # Auto-ban durations by strike count (1st, 2nd, 3rd, …). Beyond the list the last value repeats,
     # unless permanent_after_strikes is reached *with* deterministic evidence.
     ban_ladder_seconds: list[int] = Field(default_factory=lambda: [60, 900, 86400])
@@ -141,6 +177,9 @@ class Settings(BaseSettings):
     ip_ban_never_permanent: bool = True
 
     # --- conversation analysis (Stage 6) — only for requests that carry a conversation id ---
+    # Crescendo: attack-likeness rising over the last turns. With "strict" all three must rise; with
+    # "loose" two of the last three steps rise and the latest leans to attack.
+    conv_crescendo_mode: Literal["strict", "loose"] = "loose"
     conversation_enabled: bool = True
     conversation_window: int = Field(10, gt=0)  # turns remembered per conversation
     conversation_ttl_seconds: int = Field(3600, gt=0)  # memory expires this long after the last turn
@@ -192,6 +231,9 @@ class Settings(BaseSettings):
         "libwww-perl,httpclient,headless,phantomjs,selenium,puppeteer,playwright,scrapy"
     )
     bot_hosting_cidrs: str = ""  # e.g. cloud/VPS ranges; requests from them add to the bot score
+    # A request whose only identity besides the IP is a session id is profiled by the IP too: sessions
+    # are free to open, so a bot that starts a new chat per message would otherwise never be seen.
+    bot_profile_ip_for_session_only: bool = True
     # Channels where a user agent means something (a browser). SMS, WhatsApp, Apple Messages … reach CMP
     # through a provider, so their user agent is not the customer's and is ignored.
     bot_ua_channels: str = "web"
@@ -223,6 +265,22 @@ class Settings(BaseSettings):
     # This many distinct identifiers in one reply looks like a record dump → block.
     outbound_bulk_identifiers: int = Field(5, gt=1)
     outbound_max_chars: int = Field(8000, gt=0)  # longer replies are restricted (flagged for review)
+    # Replies that promise money, approvals or policy exceptions ("you will be refunded $500", "I have
+    # approved") → restrict in anonymous sessions (CMP routes them for review), flag in verified ones.
+    outbound_commitment_action: Literal["off", "flag", "restrict"] = "restrict"
+    # A reply that asks the customer to type a card number, password, SIN … → block (phishing through
+    # a trusted channel) or flag.
+    outbound_credential_request_action: Literal["off", "flag", "block"] = "block"
+    # A reply that itself contains an injection (template tokens, "ignore previous instructions"): an
+    # attack got through and is being relayed → block or flag.
+    outbound_injection_echo_action: Literal["off", "flag", "block"] = "block"
+    # Replies that look like general-purpose output (code fences, very long) are flagged.
+    outbound_code_fence_flag: bool = True
+    # A reply sharing this many hashed 8-word shingles with a registered system prompt leaked it → block.
+    prompt_leak_min_shingles: int = Field(3, gt=0)
+    # Out-of-scope identifiers in replies are also counted per session (slow harvesting: one foreign
+    # booking per reply): ≥ ENUM_SESSION_BLOCK_AT distinct in ENUM_WINDOW_SECONDS → block.
+    outbound_enum_enabled: bool = True
     outbound_strip_images: bool = True  # markdown images can carry data out in their URL
     outbound_strip_unknown_links: bool = True  # links outside ALLOWED_LINK_DOMAINS
     canary_cache_ttl_seconds: float = Field(30.0, gt=0)

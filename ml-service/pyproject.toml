@@ -12,6 +12,8 @@ dependencies = [
     "numpy>=1.26",
     "joblib>=1.4",
     "fastembed>=0.4",
+    "tokenizers>=0.15",
+    "onnxruntime>=1.17",
 ]
 
 [dependency-groups]

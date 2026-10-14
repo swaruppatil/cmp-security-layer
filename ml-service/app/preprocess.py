@@ -33,6 +33,8 @@ CONFUSABLES = str.maketrans(
         "т": "t",
         "в": "b",
         "н": "h",
+        "ѡ": "w",
+        "ԛ": "q",
         "α": "a",
         "ε": "e",
         "ι": "i",
@@ -46,7 +48,10 @@ CONFUSABLES = str.maketrans(
         "ω": "w",
     }
 )
-LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s"})
+# Keep in step with gateway/app/detectors/normalize.py (the gateway's hard-negative test compares them).
+LEET = str.maketrans(
+    {"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "@": "a", "$": "s", "!": "i"}
+)
 SPACED = re.compile(r"(?<![a-z])((?:[a-z][\s.\-_*]){3,}[a-z])(?![a-z])")
 # Same, any case (used before lower-casing, by the embedding normaliser).
 SPACED_ANY = re.compile(r"(?<![A-Za-z])((?:[A-Za-z][\s.\-_*]){3,}[A-Za-z])(?![A-Za-z])")

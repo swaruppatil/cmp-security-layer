@@ -100,10 +100,16 @@ class BotService:
     def profiled(self, entities: list[Entity]) -> list[Entity]:
         """Who to profile. A request with a user or device id is profiled through that identity only:
         an IP may be shared by many people (Wi-Fi, carrier NAT), whose traffic together would look like
-        one fast bot. Anonymous requests are profiled by IP — except trusted shared IPs (never-ban list)."""
-        if any(e.type != "ip" for e in entities):
-            return [e for e in entities if e.type != "ip"]
-        return [e for e in entities if not (e.type == "ip" and self._in(e.value, self._never))]
+        one fast bot. Anonymous requests are profiled by IP — except trusted shared IPs (never-ban list).
+        A session id alone is not an identity a bot has to keep (chats are free to open), so such
+        requests are profiled by the session *and* the IP (BOT_PROFILE_IP_FOR_SESSION_ONLY)."""
+        personal = [e for e in entities if e.type != "ip"]
+        ips = [e for e in entities if e.type == "ip" and not self._in(e.value, self._never)]
+        if any(e.type in ("user", "device") for e in personal):
+            return personal
+        if personal:  # session only
+            return personal + (ips if self._s.bot_profile_ip_for_session_only else [])
+        return ips
 
     async def assess(
         self,

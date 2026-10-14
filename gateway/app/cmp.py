@@ -13,8 +13,14 @@ Inbound (``POST /v1/inspect``):
   ``CMP_SHORT_BAN_SECONDS`` (or permanently): close the contact politely. A shorter ban is
   ``retry_later``, with ``retry_after_seconds`` set to when it ends.
 
-Outbound (``POST /v1/inspect/outbound``): ``deliver`` (send ``deliver``, never the original reply) or
-``send_fallback`` (nothing may be sent: use a safe fallback message).
+Outbound (``POST /v1/inspect/outbound``): ``deliver`` (send ``deliver``, never the original reply),
+``send_fallback`` (nothing may be sent: use a safe fallback message) or ``handoff_to_agent`` (the
+reply promises money or approvals the AI cannot make: a person takes over).
+
+Tool results (``POST /v1/inspect/tool-result``, ``app/routes/inspect_tool_results.py``): ``deliver``
+(give the model ``deliver``), ``deliver_without_tools`` (give the model ``deliver`` — suspicious pieces
+removed — and make no further tool calls this turn) or ``withhold`` (give the model a neutral "the lookup
+returned nothing usable"; no further tool calls this turn).
 """
 
 from __future__ import annotations
@@ -32,6 +38,8 @@ CmpAction = Literal[
     "handoff_to_agent",
     "end_contact",
     "send_fallback",
+    "deliver_without_tools",
+    "withhold",
 ]
 
 
@@ -69,5 +77,14 @@ def inbound_action(
     return "deliver"
 
 
-def outbound_action(deliver: str | None) -> CmpAction:
-    return "deliver" if deliver is not None else "send_fallback"
+# Restricted replies whose content needs a person: CMP hands the contact to an agent instead of
+# delivering the AI's text.
+REVIEW_REASONS = frozenset({"unverified_commitment"})
+
+
+def outbound_action(deliver: str | None, decision: Decision | None = None) -> CmpAction:
+    if deliver is None:
+        return "send_fallback"
+    if decision is not None and decision.action == Action.RESTRICT and REVIEW_REASONS & set(decision.reasons):
+        return "handoff_to_agent"
+    return "deliver"

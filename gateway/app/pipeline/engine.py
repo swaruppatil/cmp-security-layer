@@ -1,7 +1,9 @@
 """Runs the checks for one request and turns their results into a Decision.
 
 Checks run in order. A check that returns BLOCK or THROTTLE stops the pipeline: once a request is
-going to be refused there is no point paying for the later (more expensive) checks.
+going to be refused there is no point paying for the later (more expensive) checks. The exception is a
+**provisional** block (a phrase rule that wants the ML tier's second opinion before it counts as a
+strike): the pipeline carries on, and the ML check confirms or softens it.
 
 Each check declares whether it reads the request text. Requests with no user text (for example
 ``GET /v1/ai/models`` through the proxy) skip those, but still go through identity checks such as
@@ -49,7 +51,7 @@ class Pipeline:
                 continue
             result.duration_us = (time.perf_counter_ns() - t0) // 1000
             results.append(result)
-            if result.action in STOP_ACTIONS:
+            if result.action in STOP_ACTIONS and not result.provisional:
                 break
 
         action = Action.ALLOW

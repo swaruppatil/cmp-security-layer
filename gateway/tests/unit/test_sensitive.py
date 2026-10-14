@@ -99,9 +99,11 @@ def test_seed_benign_data_has_no_secret_or_payment_hits():
     from pathlib import Path
 
     data = Path(__file__).resolve().parents[3] / "datasets" / "benign"
+    # Seed and generated hard-negative files only: downloaded public support data legitimately
+    # contains phone numbers and e-mails.
     hits = [
         f.type
-        for path in data.glob("*.jsonl")
+        for path in [*data.glob("seed*.jsonl"), *data.glob("*-hard.jsonl")]
         for line in path.read_text().splitlines()
         for f in find(json.loads(line)["text"])
         if f.category in ("secret", "payment", "pii")

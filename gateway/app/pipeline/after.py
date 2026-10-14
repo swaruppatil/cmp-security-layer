@@ -8,6 +8,9 @@ logged and swallowed: bookkeeping must never break request handling.
 | throttled                                  | reputation +5; after N throttles in a window → strike   |
 | blocked by a check marked ``strike``       | reputation +25; strike (evidence kind from the check)   |
 |                                            | — a session is banned only for deterministic strikes    |
+|                                            | — a lone probabilistic verdict from a check named in    |
+|                                            |   SINGLE_SIGNAL_NO_STRIKE (ml, rules) is a block, not a  |
+|                                            |   strike: one model opinion never starts the ban ladder |
 | AI reply blocked, probabilistic evidence   | the session only (its lock escalates), not the customer |
 | blocked for another reason (e.g. too long) | reputation +2                                           |
 | blocked because already banned             | nothing (no double counting)                            |
@@ -64,6 +67,7 @@ class AfterDecision:
         self._conversations = conversations
         self._audit = audit
         self._shared = shared_ip
+        self._lone = frozenset(x.strip() for x in settings.single_signal_no_strike.split(",") if x.strip())
 
     async def __call__(self, ctx: RequestContext, decision: Decision) -> None:
         try:
@@ -100,6 +104,14 @@ class AfterDecision:
         evidence: Evidence = (
             "deterministic" if any(c.evidence == "deterministic" for c in striking) else "probabilistic"
         )
+        if striking and evidence == "probabilistic" and len(striking) == 1 and striking[0].name in self._lone:
+            # One probabilistic signal (the model, or a phrase rule the model did not confirm): refuse
+            # the message, count the block, but do not start the ban ladder on a single opinion.
+            log.info(
+                "single probabilistic signal: block without strike",
+                extra={"request_id": decision.request_id, "check": striking[0].name},
+            )
+            striking = []
         session = next((e for e in personal if e.type == "session"), None)
         if striking and ctx.direction == "outbound" and evidence == "probabilistic" and session is not None:
             # A blocked AI reply (a secret, someone else's data) is evidence about the conversation, not
