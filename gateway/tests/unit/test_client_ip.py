@@ -28,3 +28,11 @@ def test_two_trusted_proxies():
 
 def test_missing_header_falls_back_to_socket_address():
     assert client_ip(req("10.0.0.1"), make_settings(trusted_proxy_count=1)) == "10.0.0.1"
+
+
+def test_database_url_is_assembled_from_parts():
+    from app.config import Settings
+
+    s = Settings(admin_api_key="x" * 10, database_host="db.internal", database_password="p@ss/word")
+    assert s.database_url == "postgresql://sec:p%40ss%2Fword@db.internal:5432/security"
+    assert Settings(admin_api_key="x" * 10).database_url.endswith("@localhost:5432/security")

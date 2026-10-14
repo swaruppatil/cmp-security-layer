@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     # ONNX Runtime threads per scoring call (2: ~6 ms p50 for a short message; more threads help a
     # single call but compete under concurrency). Pin BLAS to 1 thread too — see the Dockerfile.
     embed_threads: int = 2
+    # Serve the bundles' transformer view under another registry name, e.g. "horizon-small-int8" for the
+    # int8 build of the same model (smaller image, same decisions within noise). Only applies to bundles
+    # trained with a transformer view; None serves the name recorded in the bundle.
+    transformer_name: str | None = None
     # Keep the model warm: score a dummy text after this many idle seconds (0 = off). See keep_warm.
     keep_warm_seconds: float = 1.0
 

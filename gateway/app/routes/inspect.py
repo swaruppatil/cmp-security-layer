@@ -16,6 +16,7 @@ checks again or charging the customer a second time.
 
 from __future__ import annotations
 
+import copy
 import logging
 from typing import Any
 
@@ -26,6 +27,7 @@ from app.cmp import inbound_action, outbound_action
 from app.pipeline.context import RequestContext
 from app.pipeline.decide import decide
 from app.pipeline.models import Action, Decision, InspectRequest, OutboundDecision, OutboundRequest
+from app.publish.kafka import KafkaPublisher, PublishError, set_path
 from app.security import request_id, require_scope
 from app.session.service import ANONYMOUS, SessionRecord, SessionService
 
@@ -95,6 +97,46 @@ async def _remember_decision(sessions: SessionService, ctx: RequestContext, deci
         log.warning("idempotency cache unavailable", extra={"request_id": decision.request_id})
 
 
+async def _publish(state: Any, body: InspectRequest, ctx: RequestContext, decision: Decision) -> None:
+    """Publish the enricher's record to Kafka when the message passes. Never raises: a failed publish
+    is reported in the decision (``published: false``) so the enricher can publish itself."""
+    publisher: KafkaPublisher | None = getattr(state, "kafka", None)
+    if body.publish is None or publisher is None:
+        return
+    allowed = {a.strip() for a in state.settings.kafka_publish_on.split(",") if a.strip()}
+    if decision.cmp_action not in allowed:
+        decision.published = False
+        decision.publish_error = "not_passed"
+        return
+    if not publisher.enabled:
+        decision.published = False
+        decision.publish_error = "disabled"
+        return
+    value = copy.deepcopy(body.publish.value)
+    if decision.redacted_message is not None and body.publish.message_field:
+        if not set_path(value, body.publish.message_field, decision.redacted_message):
+            decision.published = False
+            decision.publish_error = "message_field_not_found"
+            return
+    headers = {
+        "x-security-request-id": decision.request_id,
+        "x-security-session-id": ctx.session_id or "",
+        "x-security-action": decision.action.value,
+        "x-cmp-action": decision.cmp_action or "",
+        "x-security-restricted": "true" if decision.action == Action.RESTRICT else "false",
+        "x-security-redacted": "true" if decision.redacted_message is not None else "false",
+    }
+    try:
+        decision.publish_detail = await publisher.publish(
+            body.publish.key, value, headers, topic=body.publish.topic
+        )
+        decision.published = True
+    except PublishError as exc:
+        decision.published = False
+        decision.publish_error = exc.reason
+        log.warning("kafka publish failed", extra={"request_id": decision.request_id, "reason": exc.reason})
+
+
 def _log(decision: Decision, mode: str, principal: Principal, ctx: RequestContext) -> None:
     log.info(
         "decision",
@@ -156,6 +198,7 @@ async def inspect(
         decision, prior_blocks, settings.cmp_handoff_after_blocks, settings.cmp_short_ban_seconds
     )
     decision.session_state = ctx.session_state
+    await _publish(request.app.state, body, ctx, decision)
     await _remember_session(sessions, ctx, decision, rec, loaded)
     await _remember_decision(sessions, ctx, decision)
     # Reputation, strikes, auto-bans, audit, conversation memory: after the response is sent.

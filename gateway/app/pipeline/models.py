@@ -69,6 +69,11 @@ class Decision(BaseModel):
     cmp_action: str | None = None
     session_state: str | None = None
     replayed: bool = False
+    # Kafka: True when the gateway published the record, False when it tried and failed
+    # (``publish_error`` says why: the caller should publish itself), None when not applicable.
+    published: bool | None = None
+    publish_error: str | None = None
+    publish_detail: dict[str, Any] | None = None
 
 
 class OutboundDecision(Decision):
@@ -86,6 +91,25 @@ SessionId = Field(
     description="CMP's session id (the Amazon Connect contact id)",
 )
 Channel = Literal["web", "sms", "whatsapp", "apple", "facebook", "voice", "other"]
+
+
+class PublishSpec(BaseModel):
+    """The Kafka record the enricher would publish for this message. When the decision lets the
+    message through, the gateway publishes it (text replaced by the redacted text when needed)."""
+
+    value: Any = Field(..., description="Record value: a JSON object (published as JSON) or a string")
+    key: str | None = Field(None, max_length=500, description="Record key (e.g. the contact id)")
+    message_field: str | None = Field(
+        None,
+        max_length=200,
+        description="Path of the message text inside value (e.g. 'body.text'); replaced when redacted",
+    )
+    topic: str | None = Field(
+        None,
+        max_length=249,
+        pattern=r"^[A-Za-z0-9._-]+$",
+        description="Topic to publish to when it is not the gateway's default (must be an allowed topic)",
+    )
 
 
 class InspectRequest(BaseModel):
@@ -109,6 +133,9 @@ class InspectRequest(BaseModel):
     )
     endpoint: str = Field("chat", max_length=100, description="Logical endpoint, used to select policies")
     metadata: dict[str, Any] = Field(default_factory=dict)
+    publish: PublishSpec | None = Field(
+        None, description="Kafka record to publish when the message passes (needs KAFKA_BOOTSTRAP_SERVERS)"
+    )
 
 
 IdentifierType = Literal["email", "phone", "booking_ref", "ticket", "aeroplan"]

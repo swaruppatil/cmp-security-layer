@@ -1,0 +1,38 @@
+# Prometheus + Grafana on this laptop, looking at the *dev* deployment (security-layer-dev in AWS)
+# through two SSM tunnels opened by observability/dev.sh:
+#   localhost:28080 -> the gateway task (metrics, admin API)
+#   localhost:25432 -> the dev RDS instance (security events, through the test-runner task)
+# Same images as the local stack; only the targets, names and host ports differ, so it runs next
+# to the local stack. Start with observability/dev.sh (it fetches the keys from Secrets Manager).
+name: cmp-security-dev
+
+services:
+  prometheus:
+    build: ../observability/prometheus
+    environment:
+      ADMIN_API_KEY: ${ADMIN_API_KEY:?set by observability/dev.sh}
+    # The baked config scrapes "gateway:8080"; point that name at the tunnel on this host.
+    extra_hosts: ["gateway:host-gateway"]
+    entrypoint: ["/bin/sh", "-c", "printf %s \"$$ADMIN_API_KEY\" > /prometheus/admin_key && sed 's/gateway:8080/gateway:28080/' /etc/prometheus/prometheus.yml > /prometheus/prometheus-dev.yml && exec /bin/prometheus --config.file=/prometheus/prometheus-dev.yml --storage.tsdb.path=/prometheus --storage.tsdb.retention.time=7d"]
+    ports: ["${HOST_PROMETHEUS_PORT:-29090}:9090"]
+    volumes: [prometheus-dev-data:/prometheus]
+
+  grafana:
+    build: ../observability/grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-change-me-grafana}
+      DASHBOARD_DB_PASSWORD: ${DASHBOARD_DB_PASSWORD:?set by observability/dev.sh}
+      DASHBOARD_DB_HOST: host.docker.internal:25432
+      DASHBOARD_DB_NAME: securitylayer
+      DASHBOARD_DB_SSLMODE: require   # RDS refuses unencrypted connections
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/gateway.json
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    ports: ["${HOST_GRAFANA_PORT:-23000}:3000"]
+    volumes: [grafana-dev-data:/var/lib/grafana/data]
+    depends_on: [prometheus]
+
+volumes:
+  prometheus-dev-data:
+  grafana-dev-data:

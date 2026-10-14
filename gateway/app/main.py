@@ -28,7 +28,7 @@ from fastapi.responses import JSONResponse
 
 from app import VERSION, metrics
 from app.audit.stream import AuditPublisher, AuditWorker
-from app.auth.keys import hash_key, parse_key
+from app.auth.keys import KEY_SCHEME, hash_key, parse_key
 from app.auth.service import AuthService
 from app.bans.service import BanService
 from app.bots.service import BotService
@@ -71,6 +71,7 @@ from app.pipeline.checks import (
 )
 from app.pipeline.engine import Pipeline, Stage
 from app.policy.service import PolicyService
+from app.publish.kafka import KafkaPublisher
 from app.reputation.service import ReputationService
 from app.routes import (
     admin,
@@ -205,14 +206,29 @@ async def warm_up_ml(http: Any) -> None:
             await http.post("/v1/score", json={"texts": ["warm-up"], "return_vectors": True}, timeout=5)
 
 
+def compose_bootstrap_key(value: str, prefix: str | None) -> str:
+    """The caller key as presented in ``Authorization``: ``value`` when it already is a full key,
+    otherwise ``cmpsk_<prefix>_<value>`` (``value`` being the secret a secret store generated; CMP's
+    enricher composes the same key from the same secret)."""
+    value = value.strip()
+    if value.startswith(f"{KEY_SCHEME}_") or not prefix:
+        return value
+    return f"{KEY_SCHEME}_{prefix}_{value}"
+
+
 async def bootstrap_caller_key(store: Any, cfg: Settings) -> None:
     """Create the ``BOOTSTRAP_API_KEY`` caller key if it does not exist (only its hash is stored).
 
     Lets a deployment hand CMP its key through a secret store instead of an admin call."""
     assert cfg.bootstrap_api_key is not None
-    parsed = parse_key(cfg.bootstrap_api_key.get_secret_value())
+    parsed = parse_key(
+        compose_bootstrap_key(cfg.bootstrap_api_key.get_secret_value(), cfg.bootstrap_api_key_prefix)
+    )
     if parsed is None:
-        raise RuntimeError("BOOTSTRAP_API_KEY must look like cmpsk_<10 hex chars>_<secret>")
+        raise RuntimeError(
+            "BOOTSTRAP_API_KEY must look like cmpsk_<10 hex chars>_<secret>, or be the secret part with "
+            "BOOTSTRAP_API_KEY_PREFIX set"
+        )
     scopes = sorted({x.strip() for x in cfg.bootstrap_api_key_scopes.split(",") if x.strip()})
     if await store.ensure_api_key(cfg.bootstrap_api_key_name, parsed.prefix, hash_key(parsed.full), scopes):
         log.info("bootstrap caller key created", extra={"prefix": parsed.prefix})
@@ -317,6 +333,9 @@ def create_app(
             app.state.bots,
             enumeration,
         )
+        app.state.kafka = KafkaPublisher(cfg)
+        if app.state.kafka.enabled:
+            log.info("kafka publishing on", extra={"topic": cfg.kafka_topic})
         app.state.canaries = CanaryService(store, ttl_seconds=cfg.canary_cache_ttl_seconds)
         app.state.prompt_leak = PromptLeakService(store, ttl_seconds=cfg.canary_cache_ttl_seconds)
         app.state.outbound_pipeline = build_outbound_pipeline(
@@ -349,6 +368,7 @@ def create_app(
             yield
         finally:
             await stop_tasks(tasks)
+            await app.state.kafka.close()
             if owned_deps:
                 await app.state.deps.close()
 

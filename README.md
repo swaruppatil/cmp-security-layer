@@ -47,6 +47,10 @@ architecture · 2 code walkthrough · 3 algorithms and design decisions · 4 tes
 attacks, bots and leaks — no code). Sessions and `cmp_action`: see
 [Sessions and decisions](#sessions-and-decisions) below.
 
+**All services, why each exists and how they connect:** [docs/services-overview.md](docs/services-overview.md).
+**Infrastructure as code:** [infra/](infra/README.md) — AWS CDK app (Python), one set of stacks per
+environment (`cmp-dev`, `cmp-prod`): VPC, ElastiCache, RDS, Secrets Manager, ECS Fargate services, internal ALB.
+
 **Integrating with CMP:** [docs/integration-with-cmp.md](docs/integration-with-cmp.md) — the six hook
 points (chat start, identity verification, customer message, tool results, AI reply, chat end), what CMP
 does with each `cmp_action`, timeouts and fail-open/fail-closed per hook, and a monitor-first rollout.

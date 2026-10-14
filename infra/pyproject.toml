@@ -1,0 +1,16 @@
+[project]
+name = "cmp-security-infra"
+version = "0.1.0"
+description = "AWS CDK app for the CMP security gateway stack (ECS Fargate, ElastiCache, RDS)"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "aws-cdk-lib>=2.170,<3",
+    "constructs>=10.3,<11",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"

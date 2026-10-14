@@ -28,7 +28,7 @@ from typing import Any
 import orjson
 
 from app.config import Settings
-from app.conversation.state import state_key
+from app.conversation.state import END_GRACE_SECONDS, ended_key, state_key
 from app.session.identity import customer_key, hash_identifiers
 
 log = logging.getLogger("gateway.sessions")
@@ -198,6 +198,9 @@ class SessionService:
         """Forget the session and its conversation memory (the contact is over). Strikes and bans on
         the session stay until they expire: the record of what happened is the audit trail's job."""
         n = await self._redis.delete(session_key(session_id), state_key(session_id))
+        # A turn answered just before /end may still be writing its conversation update in the
+        # background; the marker makes that update a no-op instead of a resurrected session.
+        await self._redis.set(ended_key(session_id), b"1", ex=END_GRACE_SECONDS)
         return bool(n)
 
     # ---------------------------------------------------------------- idempotency

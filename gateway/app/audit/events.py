@@ -74,7 +74,9 @@ def build_event(ctx: RequestContext, decision: Decision, settings: Settings) -> 
         "latency_ms": decision.latency_ms,
         "text_hash": text_hash(text) if text else None,
         "text_chars": len(text),
-        "redacted_excerpt": excerpt(text, settings.audit_excerpt_chars)
-        if settings.store_redacted_excerpt and text
-        else None,
+        "redacted_excerpt": excerpt(text, settings.audit_excerpt_chars),
+        # Kafka publish outcome (None when the request carried no publish spec).
+        "published": decision.published,
+        "publish_topic": (decision.publish_detail or {}).get("topic") if decision.published else None,
+        "publish_error": decision.publish_error if settings.store_redacted_excerpt and text else None,
     }

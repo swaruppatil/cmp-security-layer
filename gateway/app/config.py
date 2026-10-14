@@ -7,8 +7,9 @@ message instead of misbehaving later.
 from __future__ import annotations
 
 from typing import Literal
+from urllib.parse import quote
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -31,6 +32,9 @@ class Settings(BaseSettings):
     bootstrap_api_key: SecretStr | None = None
     bootstrap_api_key_name: str = Field("cmp", min_length=1, max_length=100)
     bootstrap_api_key_scopes: str = "inspect,outbound"
+    # When BOOTSTRAP_API_KEY holds only the secret part (a value a secret store generated), this is
+    # the key's 10-hex-character prefix and the caller key is ``cmpsk_<prefix>_<secret>``.
+    bootstrap_api_key_prefix: str | None = Field(None, pattern=r"^[0-9a-f]{10}$")
 
     # --- CMP sessions ---
     # A session is one CMP / Amazon Connect contact. Its attributes (channel, IP, device, customer,
@@ -49,9 +53,32 @@ class Settings(BaseSettings):
 
     # --- stores ---
     redis_url: str = "redis://localhost:6379"
+    # Either a full URL, or the parts (used on AWS, where the password is a secret of its own and the
+    # host comes from the RDS endpoint): DATABASE_HOST + DATABASE_PASSWORD (+ _PORT, _USER, _NAME).
     database_url: str = "postgresql://sec:sec@localhost:5432/security"
+    database_host: str | None = None
+    database_port: int = Field(5432, gt=0)
+    database_user: str = "sec"
+    database_password: SecretStr | None = None
+    database_name: str = "security"
     db_pool_min: int = Field(1, ge=0)
     db_pool_max: int = Field(10, gt=0)
+
+    # --- Kafka (publish passed customer messages to CMP's topic; empty servers = off) ---
+    kafka_bootstrap_servers: str = ""
+    kafka_topic: str = "cmp.customer-messages"
+    kafka_client_id: str = "cmp-security-gateway"
+    kafka_security_protocol: Literal["PLAINTEXT", "SSL", "SASL_SSL"] = "SASL_SSL"
+    kafka_sasl_mechanism: Literal["AWS_MSK_IAM", "SCRAM-SHA-512", "SCRAM-SHA-256", "PLAIN"] = "AWS_MSK_IAM"
+    kafka_sasl_username: str = ""
+    kafka_sasl_password: SecretStr | None = None
+    kafka_aws_region: str = "ca-central-1"
+    kafka_timeout_ms: int = Field(2000, gt=0)
+    # Decisions that get published: deliver (allow) and forward_without_tools (restrict).
+    kafka_publish_on: str = "deliver,forward_without_tools"
+    # Topics a caller may name in ``publish.topic`` (comma-separated); KAFKA_TOPIC is always allowed.
+    # CMP's enricher routes each contact to the default or the bravo inbound topic.
+    kafka_topics_allowed: str = ""
 
     # --- ML service ---
     ml_url: str = "http://localhost:8000"
@@ -303,6 +330,20 @@ class Settings(BaseSettings):
 
     # --- readiness ---
     ready_probe_timeout_ms: int = Field(500, gt=0)
+
+    @model_validator(mode="after")
+    def _assemble_database_url(self) -> Settings:
+        if self.database_host:
+            password = (
+                quote(self.database_password.get_secret_value(), safe="") if self.database_password else ""
+            )
+            auth = (
+                f"{quote(self.database_user, safe='')}:{password}@" if password else f"{self.database_user}@"
+            )
+            self.database_url = (
+                f"postgresql://{auth}{self.database_host}:{self.database_port}/{self.database_name}"
+            )
+        return self
 
 
 def parse_channel_limits(raw: str) -> dict[str, int]:

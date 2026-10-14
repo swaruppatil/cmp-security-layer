@@ -1,17 +1,19 @@
 # The audit trail, for per-message panels. Uses the read-only role "dashboard_reader" (migration 005):
 # it can read security events (and their views), bans, strikes and policies — never API keys or canaries.
 # Its password comes from DASHBOARD_DB_PASSWORD (.env); the gateway enables the role's login at startup.
+# DASHBOARD_DB_HOST / DASHBOARD_DB_NAME are set by the compose file (local stack: postgres:5432 / security;
+# observability/docker-compose.dev.yml: the dev RDS through an SSM tunnel / securitylayer).
 apiVersion: 1
 datasources:
   - name: Security events (PostgreSQL)
     uid: security-db
     type: grafana-postgresql-datasource
     access: proxy
-    url: postgres:5432
+    url: ${DASHBOARD_DB_HOST}
     user: dashboard_reader
     jsonData:
-      database: security
-      sslmode: disable
+      database: ${DASHBOARD_DB_NAME}
+      sslmode: ${DASHBOARD_DB_SSLMODE}
       postgresVersion: 1600
       maxOpenConns: 5
     secureJsonData:

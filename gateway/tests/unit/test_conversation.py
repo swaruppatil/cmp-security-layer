@@ -300,3 +300,42 @@ async def test_back_to_back_turns_from_a_stale_snapshot_are_all_counted():
     st = await svc.get("c")
     assert st is not None and st.n == 3 and st.blocks == 3 and [t.n for t in st.turns] == [0, 1, 2]
     assert st.acc > 0.65 * 2  # accumulated over all three, not just the last
+
+
+async def test_record_after_end_does_not_recreate_memory():
+    """The post-response update of a turn answered just before /end must not resurrect the session."""
+    import uuid
+
+    from app.auth.models import Principal
+    from app.conversation.service import ConversationService
+    from app.pipeline.context import RequestContext
+    from app.pipeline.models import CheckResult, Decision
+    from app.session.service import SessionService
+    from tests.fakes import FakeRedis
+
+    redis = FakeRedis()
+    conv = ConversationService(redis, settings(), ml=None)
+    sess = SessionService(redis, settings())
+    principal = Principal(uuid.uuid4(), "cmp", "0123456789", frozenset({"inspect"}))
+    ctx = RequestContext(
+        request_id="r1",
+        principal=principal,
+        text="Do you have flights to Halifax on Friday?",
+        endpoint="chat",
+        session_id="ended",
+        conversation=await conv.load("ended"),
+    )
+    decision = Decision(
+        request_id="r1",
+        action=Action.ALLOW,
+        risk=0.0,
+        reasons=[],
+        latency_ms=1,
+        checks=[CheckResult(name="rules", passed=True, score=0.0, action=Action.ALLOW)],
+    )
+    await conv.record(ctx, decision)
+    assert await conv.get("ended") is not None
+    assert await sess.end("ended") is True
+    await conv.record(ctx, decision)  # the background update of a turn in flight
+    assert await conv.get("ended") is None
+    assert await sess.end("ended") is False

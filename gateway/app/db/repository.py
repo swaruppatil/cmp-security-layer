@@ -307,6 +307,9 @@ class Repository:
         "text_hash",
         "text_chars",
         "redacted_excerpt",
+        "published",
+        "publish_topic",
+        "publish_error",
     )
 
     async def insert_events(self, events: list[dict[str, Any]]) -> None:

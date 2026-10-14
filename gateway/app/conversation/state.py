@@ -105,3 +105,13 @@ class ConversationState:
 
 def state_key(session_id: str) -> str:
     return f"conv:{session_id}"
+
+
+# After ``/end`` a marker with this lifetime stops the post-response bookkeeping of a turn that was
+# still in flight from recreating the conversation memory (seen on the server, where the client's
+# /end arrived before the previous turn's background update had been written).
+END_GRACE_SECONDS = 60
+
+
+def ended_key(session_id: str) -> str:
+    return f"conv:ended:{session_id}"

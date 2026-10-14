@@ -14,6 +14,8 @@ dependencies = [
     "orjson>=3.10",
     "cachetools>=5.3",
     "prometheus-client>=0.20",
+    "aiokafka>=0.11",
+    "aws-msk-iam-sasl-signer-python>=1.0",
 ]
 
 [dependency-groups]

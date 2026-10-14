@@ -29,6 +29,7 @@ from app.conversation.state import (
     BlockedTurn,
     ConversationState,
     Turn,
+    ended_key,
     state_key,
     text_hash,
 )
@@ -147,10 +148,13 @@ class ConversationService:
     async def _mutate(self, session_id: str, change: Callable[[ConversationState], None]) -> None:
         """Apply ``change`` to the latest stored state, atomically (WATCH / MULTI, retried on conflict)."""
         key = state_key(session_id)
+        ended = ended_key(session_id)
         for _ in range(MAX_UPDATE_ATTEMPTS):
             async with self._redis.pipeline(transaction=True) as pipe:
                 try:
-                    await pipe.watch(key)
+                    await pipe.watch(key, ended)
+                    if await pipe.get(ended) is not None:
+                        return  # the contact ended while this turn's bookkeeping was pending
                     raw = await pipe.get(key)
                     state = (
                         ConversationState.from_json(raw)

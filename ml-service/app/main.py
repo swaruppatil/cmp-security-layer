@@ -116,7 +116,10 @@ def create_app(
             where = model_dir or settings.model_dir
             try:
                 app.state.model = load_current(
-                    where, cache_dir=settings.embed_cache_dir, threads=settings.embed_threads
+                    where,
+                    cache_dir=settings.embed_cache_dir,
+                    threads=settings.embed_threads,
+                    transformer_name=settings.transformer_name,
                 )
                 app.state.model.score(["warm-up"])
                 log.info("chat model loaded: %s", app.state.model.version)
@@ -127,7 +130,10 @@ def create_app(
             if tool_model is None:
                 try:
                     app.state.tool_model = load_tool(
-                        where, cache_dir=settings.embed_cache_dir, threads=settings.embed_threads
+                        where,
+                        cache_dir=settings.embed_cache_dir,
+                        threads=settings.embed_threads,
+                        transformer_name=settings.transformer_name,
                     )
                     if app.state.tool_model is not None:
                         app.state.tool_model.score(["warm-up"])
@@ -172,7 +178,9 @@ def create_app(
     @app.get("/v1/model")
     def model_info(request: Request, model: ModelName = "chat") -> dict[str, Any]:
         m, which = current(request, model)
-        return {"version": m.version, "model": which, **m.metadata}
+        # "transformer" is the view being served (may differ from the one recorded at training when
+        # ML_TRANSFORMER_NAME selects another build of the same model).
+        return {"version": m.version, "model": which, **m.metadata, "transformer": m.transformer_name}
 
     @app.post("/v1/score", response_model=ScoreResponse)
     def score(body: ScoreRequest, request: Request) -> ScoreResponse:

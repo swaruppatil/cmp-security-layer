@@ -1,13 +1,19 @@
-# Applies to builds whose context is the repository root (ml-service).
+# Applies to builds whose context is the repository root (ml-service, the CDK assets).
 **/.venv
 **/__pycache__
 **/.pytest_cache
 **/.ruff_cache
 **/.mypy_cache
 **/node_modules
-ml-service/models
-ml-service/evaluation/reports
 .env
 .git
-ml-service/.cache
+infra/cdk.out
+infra/.venv
+ml-service/evaluation/reports
 datasets/public/raw
+datasets/external/raw
+# ml-service/models and ml-service/.cache are shipped by Dockerfile.prebuilt (it keeps only the bundles
+# current.json names and the blobs the embedding model references); leave out what no image needs.
+ml-service/.cache/.locks
+ml-service/.cache/models--Qdrant--all-MiniLM-L6-v2-onnx
+ml-service/.cache/transformers/horizon-small
